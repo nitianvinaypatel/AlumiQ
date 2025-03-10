@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "demo-rn",
-    "slug": "demo-rn",
+    "name": "alumiq",
+    "slug": "alumiq",
     "version": "1.0.0",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
