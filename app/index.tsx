@@ -1,128 +1,124 @@
-import { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import {
-  View,
-  Text,
-  Image,
-  ActivityIndicator,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSequence,
+  Easing,
+  runOnJS,
+} from "react-native-reanimated";
 
-export default function Index() {
+export default function SplashScreen() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Animation values - simplified
+  const opacity = useSharedValue(0);
+  const scale = useSharedValue(0.9);
+  const progressWidth = useSharedValue(0);
+
+  // Simplified animation setup
   useEffect(() => {
-    // Simulate loading time
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      // Navigate to the tabs after splash screen - using the correct path format
-      router.replace("/(tabs)/home" as any);
-    }, 2500);
+    // Start with a quick fade in
+    opacity.value = withTiming(1, { duration: 400 });
 
-    return () => clearTimeout(timer);
-  }, [router]);
+    // Logo animation
+    scale.value = withTiming(1, {
+      duration: 500,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+    });
+
+    // Progress bar animation - single smooth animation
+    progressWidth.value = withSequence(
+      withTiming(0.3, { duration: 300 }),
+      withTiming(0.6, { duration: 400 }),
+      withTiming(
+        1,
+        {
+          duration: 500,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+        },
+        (finished) => {
+          if (finished) {
+            // Navigate after animation completes
+            runOnJS(navigateToLogin)();
+          }
+        }
+      )
+    );
+
+    // Clean up function
+    return () => {};
+  }, []);
+
+  const navigateToLogin = () => {
+    router.replace("/(auth)/login");
+  };
+
+  // Animated styles - simplified
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  const logoStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const progressBarStyle = useAnimatedStyle(() => ({
+    width: `${progressWidth.value * 100}%`,
+  }));
 
   return (
-    <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <View style={styles.logoWrapper}>
-          <Text style={styles.logoText}>A</Text>
+    <Animated.View
+      className="flex-1 bg-white items-center justify-between py-10"
+      style={containerStyle}
+    >
+      <View className="flex-1 items-center justify-center pt-16">
+        <Animated.View className="relative" style={logoStyle}>
+          <View className="w-20 h-20 bg-blue-600 rounded-xl items-center justify-center shadow-lg">
+            <Text className="text-4xl font-bold text-white">A</Text>
+          </View>
+        </Animated.View>
+
+        <Text className="mt-6 text-4xl font-bold text-blue-600">AlumiQ</Text>
+
+        <Text className="mt-3 text-gray-600 text-center px-8 max-w-xs">
+          Connect with your university network
+        </Text>
+
+        {/* Loading Progress - Simplified */}
+        <View className="mt-12 w-64 h-1 bg-gray-200 rounded-full overflow-hidden">
+          <Animated.View
+            className="h-full bg-blue-600 rounded-full"
+            style={progressBarStyle}
+          />
         </View>
-        <Text style={styles.appName}>AlumiQ</Text>
-        <Text style={styles.tagline}>Connect with your university network</Text>
       </View>
 
-      {isLoading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0077B5" />
-        </View>
-      )}
+      {/* Footer Section - Simplified */}
+      <View className="w-full pb-10">
+        <View className="items-center">
+          <Text className="text-gray-500 mb-5">
+            Where alumni connections thrive
+          </Text>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Where alumni connections thrive</Text>
-        <View style={styles.iconRow}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="school" size={20} color="#0077B5" />
-          </View>
-          <View style={styles.iconCircle}>
-            <Ionicons name="briefcase" size={20} color="#0077B5" />
-          </View>
-          <View style={styles.iconCircle}>
-            <Ionicons name="people" size={20} color="#0077B5" />
+          <View className="flex-row space-x-4">
+            <Pressable className="w-10 h-10 rounded-full bg-blue-50 items-center justify-center">
+              <Ionicons name="school" size={20} color="#2563EB" />
+            </Pressable>
+
+            <Pressable className="w-10 h-10 rounded-full bg-blue-50 items-center justify-center">
+              <Ionicons name="briefcase" size={20} color="#2563EB" />
+            </Pressable>
+
+            <Pressable className="w-10 h-10 rounded-full bg-blue-50 items-center justify-center">
+              <Ionicons name="people" size={20} color="#2563EB" />
+            </Pressable>
           </View>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
-
-const { width, height } = Dimensions.get("window");
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: height * 0.1,
-  },
-  logoContainer: {
-    alignItems: "center",
-    marginTop: height * 0.1,
-  },
-  logoWrapper: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: "#0077B5",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  logoText: {
-    fontSize: 48,
-    fontWeight: "bold",
-    color: "white",
-  },
-  appName: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: "#0077B5",
-    marginBottom: 10,
-  },
-  tagline: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    paddingHorizontal: 40,
-  },
-  loadingContainer: {
-    position: "absolute",
-    top: height * 0.5,
-  },
-  footer: {
-    alignItems: "center",
-  },
-  footerText: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 20,
-  },
-  iconRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    width: width * 0.6,
-  },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#E1F0FA",
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 10,
-  },
-});
