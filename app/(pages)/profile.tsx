@@ -9,11 +9,12 @@ import {
   Dimensions,
   Share,
   Platform,
-  StatusBar,
 } from "react-native";
 import { Ionicons, MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
+import Header from "@/components/home/Header";
+import { StatusBar } from "expo-status-bar";
 
 const { width } = Dimensions.get("window");
 
@@ -160,10 +161,10 @@ export default function ProfileScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <StatusBar barStyle="light-content" />
+      <StatusBar style="light" />
 
       {/* Animated Header */}
-      <Animated.View
+      {/* <Animated.View
         style={{
           position: "absolute",
           top: 0,
@@ -196,7 +197,8 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </Animated.View>
+      </Animated.View> */}
+      <Header scrollY={scrollY} />
 
       <Animated.ScrollView
         className="flex-1"

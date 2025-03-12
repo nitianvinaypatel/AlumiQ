@@ -17,6 +17,7 @@ import {
 } from "@expo/vector-icons";
 import { useState, useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
+import Header from "@/components/home/Header";
 
 const { width } = Dimensions.get("window");
 
@@ -195,7 +196,7 @@ export default function NetworkScreen() {
     <View className="flex-1 bg-gray-50">
       {/* Enhanced Header */}
 
-      <Animated.View
+      {/* <Animated.View
         style={{
           opacity: headerOpacity,
           elevation: headerElevation,
@@ -247,7 +248,8 @@ export default function NetworkScreen() {
             />
           </TouchableOpacity>
         </View>
-      </Animated.View>
+      </Animated.View> */}
+      <Header scrollY={scrollY} />
 
       <Animated.ScrollView
         className="flex-1"

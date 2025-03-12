@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,180 +11,169 @@ import {
   StatusBar,
   Easing,
   Share,
+  StyleSheet,
 } from "react-native";
-import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDrawer } from "./DrawerContext";
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  useTheme,
+  ThemeColors,
+  lightTheme,
+  darkTheme,
+  defaultTheme,
+} from "../contexts/ThemeContext";
 
 const { width } = Dimensions.get("window");
 const STATUSBAR_HEIGHT =
   StatusBar.currentHeight || (Platform.OS === "ios" ? 44 : 0);
 const DRAWER_WIDTH = Math.min(width * 0.85, 375);
 
-// Define types for menu items
+// Define types for various components
 interface MenuItem {
   id: number;
   title: string;
-  icon: keyof typeof Ionicons.glyphMap | keyof typeof FontAwesome5.glyphMap;
-  iconType?: "ionicon" | "fontawesome";
+  icon:
+    | keyof typeof Ionicons.glyphMap
+    | keyof typeof FontAwesome5.glyphMap
+    | keyof typeof MaterialIcons.glyphMap;
+  iconType?: "ionicon" | "fontawesome" | "material";
   route: string;
   badge?: number;
-  premium?: boolean;
 }
 
-interface SecondaryMenuItem {
+type SecondaryMenuItemBase = {
   id: number;
   title: string;
-  icon: keyof typeof Ionicons.glyphMap | keyof typeof FontAwesome5.glyphMap;
-  iconType?: "ionicon" | "fontawesome";
-  toggle?: boolean;
-  route?: string;
+  icon:
+    | keyof typeof Ionicons.glyphMap
+    | keyof typeof FontAwesome5.glyphMap
+    | keyof typeof MaterialIcons.glyphMap;
+  iconType?: "ionicon" | "fontawesome" | "material";
   divider?: boolean;
-  onPress?: () => void;
-}
+};
 
-interface PremiumFeature {
-  id: number;
-  title: string;
-  description: string;
-  icon: keyof typeof Ionicons.glyphMap | keyof typeof FontAwesome5.glyphMap;
-  iconType?: "ionicon" | "fontawesome";
-}
+type RouteMenuItem = SecondaryMenuItemBase & {
+  route: string;
+  toggle?: undefined;
+  onPress?: undefined;
+};
+
+type ToggleMenuItem = SecondaryMenuItemBase & {
+  toggle: true;
+  route?: undefined;
+  onPress?: undefined;
+};
+
+type ActionMenuItem = SecondaryMenuItemBase & {
+  onPress: () => void;
+  toggle?: undefined;
+  route?: undefined;
+};
+
+type SecondaryMenuItem = RouteMenuItem | ToggleMenuItem | ActionMenuItem;
 
 interface ProfileStats {
   id: number;
   count: number;
   label: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof MaterialIcons.glyphMap;
 }
 
-interface SideDrawerProps {
+export interface SideDrawerProps {
   isVisible: boolean;
   onClose: () => void;
 }
 
-// Menu items for the drawer
+// Primary menu items
 const menuItems: MenuItem[] = [
   {
     id: 1,
     title: "My Profile",
-    icon: "user",
-    iconType: "fontawesome",
-    route: "/(tabs)/profile",
+    icon: "person-outline",
+    iconType: "material",
+    route: "/(pages)/profile",
   },
   {
     id: 2,
     title: "My Network",
-    icon: "people",
+    icon: "people-outline",
+    iconType: "material",
     route: "/(tabs)/network",
   },
   {
     id: 3,
     title: "Jobs",
-    icon: "briefcase",
+    icon: "work-outline",
+    iconType: "material",
     route: "/(tabs)/jobs",
   },
   {
     id: 4,
-    title: "Messages",
-    icon: "chatbubble-ellipses",
-    route: "/(tabs)/messages",
+    title: "Messaging",
+    icon: "chat",
+    iconType: "material",
+    route: "/(pages)/messages",
     badge: 5,
   },
   {
     id: 5,
     title: "Notifications",
     icon: "notifications",
+    iconType: "material",
     route: "/(tabs)/notifications",
     badge: 12,
-  },
-  {
-    id: 6,
-    title: "Events",
-    icon: "calendar",
-    route: "/(tabs)/events",
-  },
-  {
-    id: 7,
-    title: "Groups",
-    icon: "people-circle",
-    route: "/(tabs)/groups",
-  },
-  {
-    id: 8,
-    title: "Learning",
-    icon: "school",
-    route: "/(tabs)/learning",
-    premium: true,
   },
 ];
 
 // Secondary menu items
 const secondaryMenuItems: SecondaryMenuItem[] = [
   {
-    id: 1,
+    id: 2,
     title: "Find Alumni",
     icon: "search",
-    route: "/(tabs)/find-alumni",
-  },
-  {
-    id: 2,
-    title: "Alumni Directory",
-    icon: "book",
-    route: "/(tabs)/alumni-directory",
+    iconType: "material",
+    route: "/(pages)/search",
   },
   {
     id: 3,
-    title: "Create Post",
-    icon: "create",
-    route: "/(tabs)/create-post",
+    title: "My Items",
+    icon: "bookmark-outline",
+    iconType: "material",
+    route: "/(tabs)/saved-items",
     divider: true,
   },
   {
     id: 4,
-    title: "Settings & Privacy",
-    icon: "settings",
-    route: "/(tabs)/settings",
+    title: "Create Post",
+    icon: "post-add",
+    iconType: "material",
+    route: "/(tabs)/create-post",
   },
   {
     id: 5,
-    title: "Help Center",
-    icon: "help-circle",
-    route: "/(tabs)/help",
+    title: "Settings & Privacy",
+    icon: "settings",
+    iconType: "material",
+    route: "/(pages)/settings",
   },
   {
     id: 6,
+    title: "Help Center",
+    icon: "help-outline",
+    iconType: "material",
+    route: "/(tabs)/help",
+  },
+  {
+    id: 7,
     title: "Dark Mode",
-    icon: "moon",
+    icon: "dark-mode",
+    iconType: "material",
     toggle: true,
-  },
-];
-
-// Premium features
-const premiumFeatures: PremiumFeature[] = [
-  {
-    id: 1,
-    title: "InMail Credits",
-    description: "Send messages to anyone",
-    icon: "envelope",
-    iconType: "fontawesome",
-  },
-  {
-    id: 2,
-    title: "Who Viewed Your Profile",
-    description: "See all viewers",
-    icon: "eye",
-    iconType: "fontawesome",
-  },
-  {
-    id: 3,
-    title: "Advanced Insights",
-    description: "Stand out to recruiters",
-    icon: "chart-line",
-    iconType: "fontawesome",
   },
 ];
 
@@ -194,7 +183,7 @@ const profileStats: ProfileStats[] = [
     id: 1,
     count: 652,
     label: "Profile views",
-    icon: "eye",
+    icon: "visibility",
   },
   {
     id: 2,
@@ -205,24 +194,32 @@ const profileStats: ProfileStats[] = [
   {
     id: 3,
     count: 24,
-    label: "Search appearances",
+    label: "Appearances",
     icon: "search",
   },
 ];
 
-const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
+export const SideDrawer: React.FC<SideDrawerProps> = ({
+  isVisible,
+  onClose,
+}) => {
   const router = useRouter();
+  const { theme: themeType, toggleTheme } = useTheme();
+  const theme = themeType === "dark" ? darkTheme : lightTheme;
+  const isDarkMode = themeType === "dark";
 
-  // Animation refs
+  // Animation values
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const menuItemsOpacity = useRef(new Animated.Value(0)).current;
   const profileSectionY = useRef(new Animated.Value(20)).current;
-  const scale = useRef(new Animated.Value(0.9)).current;
+  const scale = useRef(new Animated.Value(0.95)).current;
 
   // State
   const [darkMode, setDarkMode] = useState(false);
-  const [premiumExpanded, setPremiumExpanded] = useState(false);
+
+  // Scroll view ref
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Animation config
   useEffect(() => {
@@ -237,7 +234,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
         Animated.timing(translateX, {
           toValue: 0,
           duration: 300,
-          easing: Easing.bezier(0.16, 1, 0.3, 1),
+          easing: Easing.bezier(0.25, 1, 0.5, 1),
           useNativeDriver: true,
         }),
         Animated.timing(backdropOpacity, {
@@ -248,23 +245,23 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
         Animated.timing(scale, {
           toValue: 1,
           duration: 300,
-          easing: Easing.bezier(0.16, 1, 0.3, 1),
+          easing: Easing.bezier(0.25, 1, 0.5, 1),
           useNativeDriver: true,
         }),
       ]).start();
 
       // Staggered animation for menu items
       Animated.sequence([
-        Animated.delay(150),
+        Animated.delay(100),
         Animated.timing(profileSectionY, {
           toValue: 0,
-          duration: 300,
+          duration: 350,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.timing(menuItemsOpacity, {
           toValue: 1,
-          duration: 300,
+          duration: 400,
           useNativeDriver: true,
         }),
       ]).start();
@@ -274,7 +271,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
         Animated.timing(translateX, {
           toValue: -DRAWER_WIDTH,
           duration: 250,
-          easing: Easing.bezier(0.16, 1, 0.3, 1),
+          easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(backdropOpacity, {
@@ -283,7 +280,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
           useNativeDriver: true,
         }),
         Animated.timing(scale, {
-          toValue: 0.9,
+          toValue: 0.95,
           duration: 250,
           useNativeDriver: true,
         }),
@@ -323,9 +320,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
     loadDarkModePreference();
   }, []);
 
-  // Scroll view ref for scrolling to top
-  const scrollViewRef = useRef<ScrollView>(null);
-
   const handleNavigate = (route: string) => {
     // Haptic feedback
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -346,7 +340,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
   const handleShareProfile = async () => {
     try {
       await Share.share({
-        message: "Check out my AlumiQ profile!",
+        message: "Check out my professional profile on AlumiQ!",
         url: "https://alumiq.com/profile/sarahjohnson",
         title: "My AlumiQ Profile",
       });
@@ -355,21 +349,48 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
     }
   };
 
-  const togglePremiumSection = () => {
-    setPremiumExpanded(!premiumExpanded);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  const renderIcon = (item: MenuItem | SecondaryMenuItem, size: number) => {
+    const iconColor = theme.primary;
+
+    if (item.iconType === "fontawesome") {
+      return (
+        <FontAwesome5
+          name={item.icon as any}
+          size={size - 4}
+          color={iconColor}
+        />
+      );
+    } else if (item.iconType === "material") {
+      return (
+        <MaterialIcons name={item.icon as any} size={size} color={iconColor} />
+      );
+    } else {
+      return <Ionicons name={item.icon as any} size={size} color={iconColor} />;
+    }
+  };
+
+  const handleMenuItemPress = (item: SecondaryMenuItem) => {
+    if ("toggle" in item && item.toggle) {
+      toggleDarkMode();
+      toggleTheme();
+    } else if ("route" in item && item.route) {
+      handleNavigate(item.route);
+    } else if ("onPress" in item && item.onPress) {
+      item.onPress();
+    }
   };
 
   if (!isVisible) return null;
 
   return (
-    <View className="absolute inset-0 z-50">
+    <View style={StyleSheet.absoluteFill} className="z-50">
       {/* Backdrop with blur */}
       <Animated.View
-        className={`absolute inset-0 ${
-          darkMode ? "bg-black/70" : "bg-black/50"
-        }`}
-        style={{ opacity: backdropOpacity }}
+        className="absolute inset-0"
+        style={{
+          opacity: backdropOpacity,
+          backgroundColor: isDarkMode ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.5)",
+        }}
       >
         <TouchableOpacity
           className="w-full h-full"
@@ -380,22 +401,26 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
 
       {/* Drawer Content */}
       <Animated.View
-        className={`absolute top-0 left-0 h-full shadow-xl ${
-          darkMode ? "bg-gray-900" : "bg-white"
-        } ${
-          Platform.OS === "ios" ? "rounded-tr-2xl rounded-br-2xl" : ""
-        } overflow-hidden`}
+        className="absolute top-0 left-0 h-full shadow-2xl overflow-hidden"
         style={{
           width: DRAWER_WIDTH,
+          backgroundColor: theme.background,
+          borderTopRightRadius: Platform.OS === "ios" ? 16 : 0,
+          borderBottomRightRadius: Platform.OS === "ios" ? 16 : 0,
           transform: [{ translateX }, { scale }],
+          shadowColor: "#000",
+          shadowOffset: { width: 2, height: 0 },
+          shadowOpacity: 0.25,
+          shadowRadius: 10,
+          elevation: 24,
         }}
       >
         {Platform.OS === "ios" && (
           <BlurView
-            intensity={darkMode ? 20 : 10}
+            intensity={isDarkMode ? 25 : 15}
             className="absolute top-0 left-0 right-0 z-10"
             style={{ height: STATUSBAR_HEIGHT + 10 }}
-            tint={darkMode ? "dark" : "light"}
+            tint={isDarkMode ? "dark" : "light"}
           />
         )}
 
@@ -403,327 +428,337 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
           ref={scrollViewRef}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 30 }}
-          className={darkMode ? "bg-gray-900" : "bg-white"}
+          style={{ backgroundColor: theme.background }}
         >
           {/* User Profile Section */}
           <Animated.View
-            className={`px-5 ${darkMode ? "bg-black" : "bg-gray-50"}`}
             style={{
               paddingTop: Platform.OS === "ios" ? 50 : STATUSBAR_HEIGHT + 20,
               transform: [{ translateY: profileSectionY }],
             }}
           >
-            <View className="flex-row justify-between items-center mb-4">
-              <TouchableOpacity
-                onPress={() => handleNavigate("/(tabs)/profile")}
-                activeOpacity={0.9}
-                className="relative"
-              >
-                <Image
-                  source={{
-                    uri: "https://randomuser.me/api/portraits/women/1.jpg",
+            <LinearGradient
+              colors={
+                Array.isArray(theme.profileGradient)
+                  ? theme.profileGradient
+                  : defaultTheme.profileGradient
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="absolute top-0 left-0 right-0 h-80"
+            />
+
+            <View className="px-5">
+              <View className="flex-row justify-between items-center mb-3 pt-2">
+                <TouchableOpacity
+                  onPress={() => handleNavigate("/(pages)/profile")}
+                  activeOpacity={0.9}
+                  className="relative"
+                >
+                  <Image
+                    source={{
+                      uri: "https://randomuser.me/api/portraits/women/1.jpg",
+                    }}
+                    className="w-20 h-20 rounded-full"
+                    style={{
+                      borderWidth: 3,
+                      borderColor: theme.background,
+                    }}
+                  />
+                  <View
+                    className="w-4 h-4 rounded-full bg-green-500 absolute bottom-0 right-0 border-2"
+                    style={{ borderColor: theme.background }}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: "rgba(255,255,255,0.3)",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  className="w-16 h-16 rounded-full border-2 border-blue-600"
-                />
-                <View className="w-3 h-3 rounded-full bg-green-600 absolute bottom-0.5 right-0.5 border-2 border-white" />
-              </TouchableOpacity>
+                  onPress={onClose}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="close" size={22} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
 
               <TouchableOpacity
-                className={`w-9 h-9 rounded-full items-center justify-center ${
-                  darkMode ? "bg-gray-800" : "bg-blue-50"
-                }`}
-                onPress={onClose}
-                activeOpacity={0.7}
+                onPress={() => handleNavigate("/(pages)/profile")}
+                activeOpacity={0.8}
+                className="mb-1"
               >
-                <Ionicons name="close" size={24} color="#0077B5" />
+                <Text
+                  style={{
+                    color: theme.profileTextColor,
+                    fontSize: 20,
+                    fontWeight: "bold",
+                    marginBottom: 2,
+                  }}
+                >
+                  Sarah Johnson
+                </Text>
+                <Text
+                  style={{
+                    color: theme.profileTextColor,
+                    opacity: 0.9,
+                    fontSize: 14,
+                  }}
+                >
+                  Senior Software Engineer at TechCorp
+                </Text>
               </TouchableOpacity>
+
+              {/* Profile Actions */}
+              <View className="flex-row mt-4 mb-2 pt-2">
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: theme.cardBackground,
+                    paddingVertical: 10,
+                    paddingHorizontal: 20,
+                    borderRadius: 20,
+                    flex: 1,
+                    marginRight: 8,
+                  }}
+                  activeOpacity={0.8}
+                  onPress={() => handleNavigate("/(pages)/profile")}
+                >
+                  <Text
+                    style={{
+                      color: theme.primary,
+                      fontWeight: "600",
+                      textAlign: "center",
+                      fontSize: 14,
+                    }}
+                  >
+                    View Profile
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "rgba(255,255,255,0.2)",
+                  }}
+                  activeOpacity={0.8}
+                  onPress={handleShareProfile}
+                >
+                  <Ionicons name="share-social" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <TouchableOpacity
-              onPress={() => handleNavigate("/(tabs)/profile")}
-              activeOpacity={0.8}
-              className="mb-1"
-            >
-              <Text
-                className={`text-xl font-bold mb-0.5 ${
-                  darkMode ? "text-white" : "text-gray-900"
-                }`}
-              >
-                Sarah Johnson
-              </Text>
-              <Text
-                className={`text-sm ${
-                  darkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                Senior Software Engineer at TechCorp
-              </Text>
-            </TouchableOpacity>
-
             {/* Profile Stats */}
-            <View className="flex-row mt-4 mb-4">
-              {profileStats.map((stat, index) => (
+            <View
+              style={{
+                flexDirection: "row",
+                marginTop: 12,
+                marginHorizontal: 10,
+                borderRadius: 12,
+                overflow: "hidden",
+                paddingHorizontal: 2,
+                backgroundColor: theme.cardBackground,
+              }}
+            >
+              {profileStats?.map((stat, index) => (
                 <TouchableOpacity
                   key={stat.id}
-                  className={`flex-1 items-center py-2.5 ${
-                    index < profileStats.length - 1
-                      ? darkMode
-                        ? "border-r border-gray-700"
-                        : "border-r border-gray-200"
-                      : ""
-                  }`}
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    paddingVertical: 14,
+                    borderRightWidth: index < profileStats.length - 1 ? 1 : 0,
+                    borderRightColor: theme.divider,
+                  }}
                   activeOpacity={0.7}
                 >
                   <Text
-                    className={`text-lg font-bold mb-0.5 ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    }`}
+                    style={{
+                      fontSize: 18,
+                      fontWeight: "bold",
+                      marginBottom: 4,
+                      color: theme.text,
+                    }}
                   >
                     {stat.count}
                   </Text>
-                  <View className="flex-row items-center justify-center">
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <MaterialIcons
+                      name={stat.icon}
+                      size={14}
+                      color={theme.textSecondary}
+                      style={{ marginRight: 3 }}
+                    />
                     <Text
-                      className={`text-xs ${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
+                      style={{
+                        fontSize: 12,
+                        color: theme.textSecondary,
+                      }}
                     >
                       {stat.label}
                     </Text>
-                    <Ionicons
-                      name={stat.icon}
-                      size={14}
-                      color={darkMode ? "#9ca3af" : "#666666"}
-                      className="ml-1"
-                    />
                   </View>
                 </TouchableOpacity>
-              ))}
-            </View>
-
-            <View className="flex-row items-center mb-4">
-              <TouchableOpacity
-                className="bg-blue-600 py-2.5 px-5 rounded-full flex-1 mr-2"
-                activeOpacity={0.8}
-                onPress={() => handleNavigate("/(tabs)/profile")}
-              >
-                <Text className="text-white font-semibold text-center text-sm">
-                  View Profile
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className={`w-10 h-10 rounded-full items-center justify-center ${
-                  darkMode ? "bg-gray-800" : "bg-blue-50"
-                }`}
-                activeOpacity={0.8}
-                onPress={handleShareProfile}
-              >
-                <Ionicons name="share-social" size={20} color="#0077B5" />
-              </TouchableOpacity>
+              )) || null}
             </View>
           </Animated.View>
 
-          {/* Premium Section */}
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={togglePremiumSection}
-            className={`mx-4 my-2.5 p-4 rounded-lg ${
-              darkMode ? "bg-amber-900/40" : "bg-amber-200"
-            }`}
-          >
-            <View className="flex-row items-center">
-              <FontAwesome5
-                name="crown"
-                size={16}
-                color={darkMode ? "#E7A33E" : "#92400E"}
-              />
-              <Text
-                className={`font-semibold text-base ml-2 flex-1 ${
-                  darkMode ? "text-amber-400" : "text-amber-800"
-                }`}
-              >
-                Try Premium for free
-              </Text>
-              <Ionicons
-                name={premiumExpanded ? "chevron-up" : "chevron-down"}
-                size={22}
-                color={darkMode ? "#E7A33E" : "#92400E"}
-              />
-            </View>
-
-            {premiumExpanded && (
-              <View className="mt-3">
-                <Text
-                  className={`text-sm mb-2.5 ${
-                    darkMode ? "text-amber-400" : "text-amber-800"
-                  }`}
-                >
-                  Unlock exclusive premium features:
-                </Text>
-
-                {premiumFeatures.map((feature) => (
-                  <View key={feature.id} className="flex-row mb-3">
-                    {feature.iconType === "fontawesome" ? (
-                      <FontAwesome5
-                        name={feature.icon as any}
-                        size={16}
-                        color={darkMode ? "#E7A33E" : "#92400E"}
-                        className="mt-0.5 mr-2.5"
-                      />
-                    ) : (
-                      <Ionicons
-                        name={feature.icon as any}
-                        size={18}
-                        color={darkMode ? "#E7A33E" : "#92400E"}
-                        className="mt-0.5 mr-2.5"
-                      />
-                    )}
-                    <View className="flex-1">
-                      <Text
-                        className={`font-semibold text-sm mb-0.5 ${
-                          darkMode ? "text-white" : "text-amber-900"
-                        }`}
-                      >
-                        {feature.title}
-                      </Text>
-                      <Text
-                        className={`text-xs ${
-                          darkMode ? "text-amber-400" : "text-amber-700"
-                        }`}
-                      >
-                        {feature.description}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-
-                <TouchableOpacity
-                  className={`py-2 px-4 rounded-full mt-1 ${
-                    darkMode ? "bg-amber-400" : "bg-amber-700"
-                  }`}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    className={`font-semibold text-sm text-center ${
-                      darkMode ? "text-black" : "text-white"
-                    }`}
-                  >
-                    Try free for 1 month
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </TouchableOpacity>
-
           {/* Primary Menu Items */}
           <Animated.View
-            className="px-4 py-1"
-            style={{ opacity: menuItemsOpacity }}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              marginTop: 8,
+              opacity: menuItemsOpacity,
+            }}
           >
-            {menuItems.map((item) => (
+            {menuItems?.map((item) => (
               <TouchableOpacity
                 key={item.id}
-                className="flex-row items-center py-3 px-1"
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 12,
+                  paddingHorizontal: 8,
+                  borderRadius: 8,
+                  marginBottom: 2,
+                  backgroundColor: "transparent",
+                }}
                 activeOpacity={0.7}
                 onPress={() => handleNavigate(item.route)}
               >
                 <View
-                  className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${
-                    darkMode ? "bg-gray-800" : "bg-blue-50"
-                  }`}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 16,
+                    backgroundColor: theme.iconBackground,
+                  }}
                 >
-                  {item.iconType === "fontawesome" ? (
-                    <FontAwesome5
-                      name={item.icon as any}
-                      size={18}
-                      color="#0077B5"
-                    />
-                  ) : (
-                    <Ionicons
-                      name={item.icon as any}
-                      size={22}
-                      color="#0077B5"
-                    />
-                  )}
+                  {renderIcon(item, 24)}
                 </View>
                 <Text
-                  className={`text-base flex-1 ${
-                    darkMode ? "text-white" : "text-gray-800"
-                  }`}
+                  style={{
+                    fontSize: 16,
+                    flex: 1,
+                    color: theme.text,
+                    fontWeight: "500",
+                  }}
                 >
                   {item.title}
                 </Text>
                 {item.badge && (
-                  <View className="bg-red-500 min-w-6 h-6 rounded-full items-center justify-center px-1">
-                    <Text className="text-xs font-bold text-white">
+                  <View
+                    style={{
+                      minWidth: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      backgroundColor: theme.badgeBackground,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      paddingHorizontal: 6,
+                      marginLeft: 8,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "bold",
+                        color: theme.badgeText,
+                      }}
+                    >
                       {item.badge}
                     </Text>
                   </View>
                 )}
-                {item.premium && (
-                  <FontAwesome5 name="crown" size={12} color="#E7A33E" />
-                )}
               </TouchableOpacity>
-            ))}
+            )) || null}
           </Animated.View>
 
           <View
-            className={`h-px mx-4 my-2.5 ${
-              darkMode ? "bg-gray-800" : "bg-gray-200"
-            }`}
+            style={{
+              height: 1,
+              marginHorizontal: 16,
+              marginVertical: 10,
+              backgroundColor: theme.divider,
+            }}
           />
 
           {/* Secondary Menu Items */}
-          <View className="px-4 py-1">
-            {secondaryMenuItems.map((item) => (
+          <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
+            {secondaryMenuItems?.map((item) => (
               <React.Fragment key={item.id}>
                 <TouchableOpacity
-                  className="flex-row items-center py-3 px-1"
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingVertical: 12,
+                    paddingHorizontal: 8,
+                    borderRadius: 8,
+                  }}
                   activeOpacity={0.7}
-                  onPress={
-                    item.toggle
-                      ? toggleDarkMode
-                      : item.route
-                      ? () => handleNavigate(item.route)
-                      : item.onPress
-                  }
+                  onPress={() => handleMenuItemPress(item)}
                 >
                   <View
-                    className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${
-                      darkMode ? "bg-gray-800" : "bg-blue-50"
-                    }`}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 16,
+                      backgroundColor: theme.iconBackground,
+                    }}
                   >
-                    {item.iconType === "fontawesome" ? (
-                      <FontAwesome5
-                        name={item.icon as any}
-                        size={18}
-                        color="#0077B5"
-                      />
-                    ) : (
-                      <Ionicons
-                        name={item.icon as any}
-                        size={22}
-                        color="#0077B5"
-                      />
-                    )}
+                    {renderIcon(item, 24)}
                   </View>
                   <Text
-                    className={`text-base flex-1 ${
-                      darkMode ? "text-white" : "text-gray-800"
-                    }`}
+                    style={{
+                      fontSize: 16,
+                      flex: 1,
+                      color: theme.text,
+                      fontWeight: "500",
+                    }}
                   >
                     {item.title}
                   </Text>
-                  {item.toggle && (
+                  {"toggle" in item && item.toggle && (
                     <View
-                      className={`w-10 h-5 rounded-full p-0.5 ${
-                        darkMode ? "bg-blue-600" : "bg-gray-300"
-                      }`}
+                      style={{
+                        width: 48,
+                        height: 24,
+                        borderRadius: 12,
+                        padding: 2,
+                        backgroundColor: theme.toggleBackground,
+                      }}
                     >
                       <Animated.View
-                        className="w-4 h-4 rounded-full bg-white"
                         style={{
-                          transform: [{ translateX: darkMode ? 18 : 0 }],
+                          width: 20,
+                          height: 20,
+                          borderRadius: 10,
+                          backgroundColor: theme.toggleIndicator,
+                          transform: [{ translateX: darkMode ? 22 : 0 }],
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.2,
+                          shadowRadius: 1,
+                          elevation: 2,
                         }}
                       />
                     </View>
@@ -731,48 +766,73 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
                 </TouchableOpacity>
                 {item.divider && (
                   <View
-                    className={`h-px mx-1 my-2.5 ${
-                      darkMode ? "bg-gray-800" : "bg-gray-200"
-                    }`}
+                    style={{
+                      height: 1,
+                      marginHorizontal: 4,
+                      marginVertical: 10,
+                      backgroundColor: theme.divider,
+                    }}
                   />
                 )}
               </React.Fragment>
-            ))}
+            )) || null}
           </View>
 
           <View
-            className={`h-px mx-4 my-2.5 ${
-              darkMode ? "bg-gray-800" : "bg-gray-200"
-            }`}
+            style={{
+              height: 1,
+              marginHorizontal: 16,
+              marginVertical: 10,
+              backgroundColor: theme.divider,
+            }}
           />
 
           {/* Sign Out Button */}
           <TouchableOpacity
-            className="flex-row items-center py-4 px-5"
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingVertical: 16,
+              paddingHorizontal: 24,
+              marginHorizontal: 16,
+              marginBottom: 8,
+              borderRadius: 8,
+              backgroundColor: theme.iconBackground,
+            }}
             activeOpacity={0.7}
           >
-            <Ionicons name="log-out" size={22} color="#0077B5" />
-            <Text className="text-base font-semibold text-blue-600 ml-2.5">
+            <MaterialIcons name="logout" size={22} color={theme.primary} />
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                marginLeft: 12,
+                color: theme.primary,
+              }}
+            >
               Sign Out
             </Text>
           </TouchableOpacity>
 
           {/* App Version */}
           <Text
-            className={`text-xs text-center my-5 ${
-              darkMode ? "text-gray-500" : "text-gray-400"
-            }`}
+            style={{
+              fontSize: 12,
+              textAlign: "center",
+              marginVertical: 20,
+              color: theme.textSecondary,
+            }}
           >
             AlumiQ v1.2.0
           </Text>
         </ScrollView>
       </Animated.View>
 
-      {/* Status Bar Overlay to ensure drawer appears above status bar */}
+      {/* Status Bar Overlay */}
       {Platform.OS === "android" && (
         <StatusBar
           backgroundColor="transparent"
-          barStyle={darkMode ? "light-content" : "dark-content"}
+          barStyle={isDarkMode ? "light-content" : "dark-content"}
           translucent
         />
       )}
@@ -780,7 +840,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isVisible, onClose }) => {
   );
 };
 
-// This component will be rendered at the root level of the app
+// Root component for drawer
 const SideDrawerRoot: React.FC = () => {
   const { isDrawerVisible, closeDrawer } = useDrawer();
   return <SideDrawer isVisible={isDrawerVisible} onClose={closeDrawer} />;

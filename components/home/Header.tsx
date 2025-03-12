@@ -1,89 +1,83 @@
-import React, { useState, useRef } from "react";
-import {
-  Text,
-  View,
-  Image,
-  TextInput,
-  TouchableOpacity,
-  Animated,
-} from "react-native";
+import React from "react";
+import { Text, View, Image, TouchableOpacity, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDrawer } from "@/components/DrawerContext";
+import { useRouter } from "expo-router";
 
-// Define the props interface
+// Define props interface
 interface HeaderProps {
   scrollY: Animated.Value;
 }
 
-// Update props to remove onProfilePress
 const Header: React.FC<HeaderProps> = ({ scrollY }) => {
-  const [searchFocused, setSearchFocused] = useState(false);
-  const { toggleDrawer } = useDrawer(); // Use the drawer context
+  const { toggleDrawer } = useDrawer();
+  const router = useRouter();
 
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 50],
-    outputRange: [1, 0.9],
+    outputRange: [1, 0.95],
     extrapolate: "clamp",
   });
 
-  const headerElevation = scrollY.interpolate({
+  const headerShadow = scrollY.interpolate({
     inputRange: [0, 50],
-    outputRange: [0, 3],
+    outputRange: [0, 5],
     extrapolate: "clamp",
   });
 
   return (
     <Animated.View
-      style={{ opacity: headerOpacity, elevation: headerElevation }}
-      className="bg-white px-4 pt-10 py-2 flex-row items-center justify-between border-b border-gray-200 shadow-sm"
+      style={{
+        opacity: headerOpacity,
+        elevation: headerShadow,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      }}
+      className="bg-white px-5 pt-10 pb-4 flex-row items-center justify-between border-b border-gray-100"
     >
-      <View className="flex-row items-center gap-3 flex-1">
-        <TouchableOpacity
-          className="relative"
-          activeOpacity={0.8}
-          onPress={toggleDrawer} // Use toggleDrawer from context
-        >
-          <Image
-            source={{ uri: "https://randomuser.me/api/portraits/women/1.jpg" }}
-            className="w-11 h-11 rounded-full border-2 border-blue-500"
-          />
-          <View className="absolute bottom-0 right-0 bg-green-500 w-3 h-3 rounded-full border border-white"></View>
-        </TouchableOpacity>
-        <View
-          className={`flex-1 flex-row items-center bg-gray-100 rounded-full ${
-            searchFocused ? "border border-blue-400" : ""
-          }`}
-        >
-          <Ionicons
-            name="search"
-            size={18}
-            color="#6b7280"
-            style={{ marginLeft: 12 }}
-          />
-          <TextInput
-            placeholder="Search alumni..."
-            className="px-2 py-2 text-sm flex-1"
-            placeholderTextColor="#6b7280"
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-          />
-        </View>
-      </View>
-      <View className="flex-row items-center">
-        <TouchableOpacity activeOpacity={0.7} className="mr-3 relative">
-          <Ionicons name="notifications-outline" size={24} color="#0077B5" />
-          <View className="absolute -top-1 -right-1 bg-red-500 w-4 h-4 rounded-full flex items-center justify-center">
-            <Text className="text-white text-xs font-bold">3</Text>
+      {/* Left Section: Profile & Search */}
+      <View className="flex-row items-center flex-1 space-x-3">
+        {/* Profile Picture */}
+        <TouchableOpacity activeOpacity={0.8} onPress={toggleDrawer}>
+          <View className="relative">
+            <Image
+              source={{
+                uri: "https://randomuser.me/api/portraits/women/1.jpg",
+              }}
+              className="w-11 h-11 rounded-full border-2 border-blue-500"
+            />
+            {/* Online Indicator */}
+            <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></View>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.7}>
-          <Ionicons
-            name="chatbubble-ellipses-outline"
-            size={24}
-            color="#0077B5"
-          />
+
+        {/* Search Bar */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          className="flex-1 bg-gray-100 rounded-full px-4 ml-6 py-2 flex-row items-center"
+          onPress={() => router.push("/(pages)/search")}
+        >
+          <Ionicons name="search" size={20} color="#6b7280" />
+          <Text className="text-gray-500 text-sm ml-2">
+            Search alumni, jobs....
+          </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Right Section: Messages */}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        className="relative min-w-[40px] ml-4"
+        onPress={() => router.push("/(pages)/messages")}
+      >
+        <Ionicons name="chatbox-ellipses-outline" size={26} color="#0077B5" />
+        {/* Notification Badge */}
+        <View className="absolute -top-1 -right-1 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center">
+          <Text className="text-white text-xs font-bold">2</Text>
+        </View>
+      </TouchableOpacity>
     </Animated.View>
   );
 };

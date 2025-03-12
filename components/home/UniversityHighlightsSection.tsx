@@ -2,27 +2,47 @@ import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { UniversityHighlights } from "../../helpers/homeData";
+import { useRouter } from "expo-router";
+import { useTheme } from "../../contexts/ThemeContext";
+import { darkTheme, lightTheme } from "../../contexts/ThemeContext";
 
 const UniversityHighlightsSection = () => {
+  const router = useRouter();
+  const { theme } = useTheme();
+
+  // Determine theme colors based on current theme
+  const colors = theme === "dark" ? darkTheme : lightTheme;
+
   return (
-    <View className="mt-2 mb-3 overflow-hidden">
+    <View
+      className={`pt-2 mb-3 overflow-hidden ${
+        theme === "dark" ? "bg-gray-800" : "bg-white"
+      }`}
+    >
       <View className="px-4 mb-2 flex-row items-center justify-between">
         <View className="flex-row items-center">
           <LinearGradient
-            colors={["#0077B5", "#4f46e5"]}
+            colors={colors.profileGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             className="w-8 h-8 rounded-lg items-center justify-center mr-2"
           >
             <Ionicons name="school" size={18} color="white" />
           </LinearGradient>
-          <Text className="font-bold text-lg text-gray-800">
+          <Text
+            className={`font-bold text-lg ${
+              theme === "dark" ? "text-gray-100" : "text-gray-800"
+            }`}
+          >
             University Highlights
           </Text>
         </View>
-        <TouchableOpacity className="flex-row items-center">
+        <TouchableOpacity
+          onPress={() => router.push("/(pages)/all-university-highlights")}
+          className="flex-row items-center"
+        >
           <Text className="text-blue-600 font-medium mr-1">View All</Text>
-          <Ionicons name="chevron-forward" size={16} color="#0077B5" />
+          <Ionicons name="chevron-forward" size={16} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -39,7 +59,13 @@ const UniversityHighlightsSection = () => {
             activeOpacity={0.9}
             style={{ width: 280 }}
           >
-            <View className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+            <View
+              className={`${
+                theme === "dark" ? "bg-gray-800" : "bg-white"
+              } rounded-xl overflow-hidden shadow-sm ${
+                theme === "dark" ? "border-gray-700" : "border-gray-100"
+              } border`}
+            >
               <View className="relative">
                 <Image
                   source={{ uri: item.image }}
@@ -63,7 +89,11 @@ const UniversityHighlightsSection = () => {
                     </Text>
                   </View>
                 )}
-                <View className="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded-md">
+                <View
+                  className={`absolute top-3 left-3 ${
+                    theme === "dark" ? "bg-gray-800/90" : "bg-white/90"
+                  } px-2 py-1 rounded-md`}
+                >
                   <Text className="text-blue-600 text-xs font-medium">
                     {item.category}
                   </Text>
@@ -71,39 +101,63 @@ const UniversityHighlightsSection = () => {
               </View>
 
               <View className="p-3">
-                <Text className="font-bold text-base text-gray-800">
+                <Text
+                  className={`font-bold text-base ${
+                    theme === "dark" ? "text-gray-100" : "text-gray-800"
+                  }`}
+                >
                   {item.title}
                 </Text>
 
                 <View className="flex-row items-center justify-between mt-2">
                   <View className="flex-row items-center">
-                    <View className="bg-blue-50 p-1 rounded-md">
+                    <View
+                      className={`${
+                        theme === "dark" ? "bg-gray-700" : "bg-blue-50"
+                      } p-1 rounded-md`}
+                    >
                       <Ionicons
                         name="calendar-outline"
                         size={14}
-                        color="#0077B5"
+                        color={colors.primary}
                       />
                     </View>
-                    <Text className="text-gray-600 text-xs ml-1 font-medium">
+                    <Text
+                      className={`${
+                        theme === "dark" ? "text-gray-400" : "text-gray-600"
+                      } text-xs ml-1 font-medium`}
+                    >
                       {item.date}
                     </Text>
                   </View>
 
                   <View className="flex-row items-center">
-                    <View className="bg-blue-50 p-1 rounded-md">
+                    <View
+                      className={`${
+                        theme === "dark" ? "bg-gray-700" : "bg-blue-50"
+                      } p-1 rounded-md`}
+                    >
                       <Ionicons
                         name="location-outline"
                         size={14}
-                        color="#0077B5"
+                        color={colors.primary}
                       />
                     </View>
-                    <Text className="text-gray-600 text-xs ml-1 font-medium">
+                    <Text
+                      className={`${
+                        theme === "dark" ? "text-gray-400" : "text-gray-600"
+                      } text-xs ml-1 font-medium`}
+                    >
                       {item.location}
                     </Text>
                   </View>
                 </View>
 
-                <View className="mt-3 pt-3 border-t border-gray-100 flex-row items-center justify-between">
+                <View
+                  className={`mt-3 pt-3 border-t ${
+                    theme === "dark" ? "border-gray-700" : "border-gray-100"
+                  } flex-row items-center justify-between`}
+                >
                   <View className="flex-row items-center">
                     <View className="flex-row items-center -space-x-2">
                       {[1, 2, 3].map((avatar) => (
@@ -118,7 +172,11 @@ const UniversityHighlightsSection = () => {
                         />
                       ))}
                     </View>
-                    <Text className="text-gray-600 text-xs ml-1">
+                    <Text
+                      className={`${
+                        theme === "dark" ? "text-gray-400" : "text-gray-600"
+                      } text-xs ml-1`}
+                    >
                       +{item.attendees} attending
                     </Text>
                   </View>

@@ -1,19 +1,21 @@
 import React, { memo } from "react";
+import { StatusBar } from "react-native";
 import { useDrawer } from "./DrawerContext";
 import SideDrawer from "./SideDrawer";
-import { StatusBar } from "react-native";
+import { useTheme } from "../contexts/ThemeContext";
 
 // This component will be rendered at the root level of the app
 // Using memo to prevent unnecessary re-renders
 const SideDrawerRoot: React.FC = memo(() => {
-  const { isDrawerVisible, closeDrawer, isDarkMode } = useDrawer();
+  const { isDrawerVisible, closeDrawer } = useDrawer();
+  const { theme } = useTheme(); // Correctly accessing the theme value
 
   return (
     <>
       <StatusBar
-        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        barStyle={theme === "dark" ? "light-content" : "dark-content"} // Fixed
         backgroundColor="transparent"
-        translucent
+        translucent={true}
       />
       <SideDrawer isVisible={isDrawerVisible} onClose={closeDrawer} />
     </>

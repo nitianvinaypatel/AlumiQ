@@ -1,22 +1,106 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { View } from "react-native";
+import { View, Platform } from "react-native";
+import { useMemo } from "react";
+import Animated, {
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
+import { BlurView } from "expo-blur";
+
+// Custom animated tab bar icon component
+interface AnimatedIconProps {
+  name: keyof typeof Ionicons.glyphMap;
+  color: string;
+  size: number;
+  focused: boolean;
+}
+
+const AnimatedIcon = ({ name, color, size, focused }: AnimatedIconProps) => {
+  // Use the filled icon variant when focused
+  const iconName = focused
+    ? (name.replace("-outline", "") as keyof typeof Ionicons.glyphMap)
+    : name;
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: withTiming(focused ? 1.1 : 1, {
+            duration: 150,
+          }),
+        },
+      ],
+      opacity: withTiming(focused ? 1 : 0.7, { duration: 150 }),
+    };
+  });
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Ionicons name={iconName} size={size} color={color} />
+    </Animated.View>
+  );
+};
 
 export default function TabsLayout() {
+  // Determine if we're on iOS for the blur effect
+  const isIOS = Platform.OS === "ios";
+
+  // LinkedIn-inspired colors
+  const LINKEDIN_BLUE = "#0A66C2";
+
+  // Tab bar style with conditional blur effect
+  const tabBarStyle = useMemo(
+    () => ({
+      paddingBottom: 8,
+      paddingTop: 8,
+      height: 60,
+      borderTopWidth: 0.5,
+      borderTopColor: "rgba(0, 0, 0, 0.1)",
+      elevation: 8,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      backgroundColor: isIOS ? "rgba(255, 255, 255, 0.85)" : "white",
+    }),
+    [isIOS]
+  );
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#0077B5", // AlumiQ blue color
-        tabBarInactiveTintColor: "gray",
-        tabBarStyle: { paddingBottom: 5 },
+        tabBarActiveTintColor: LINKEDIN_BLUE, // LinkedIn blue color
+        tabBarInactiveTintColor: "#666",
+        tabBarStyle: tabBarStyle,
         headerShown: true,
         headerStyle: {
-          backgroundColor: "#0077B5",
+          backgroundColor: LINKEDIN_BLUE,
         },
         headerTintColor: "#fff",
         headerTitleStyle: {
-          fontWeight: "bold",
+          fontWeight: "600",
+          fontSize: 16,
         },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "500",
+          paddingBottom: 2,
+        },
+        tabBarBackground: () =>
+          isIOS ? (
+            <BlurView
+              intensity={80}
+              tint="light"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
+          ) : null,
       }}
     >
       <Tabs.Screen
@@ -24,8 +108,13 @@ export default function TabsLayout() {
         options={{
           headerShown: false,
           title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedIcon
+              name="home-outline"
+              size={size}
+              color={color}
+              focused={focused}
+            />
           ),
         }}
       />
@@ -33,21 +122,44 @@ export default function TabsLayout() {
         name="network"
         options={{
           headerShown: false,
-          title: "Alumni",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="school" size={size} color={color} />
+          title: "My Network",
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedIcon
+              name="people-outline"
+              size={size}
+              color={color}
+              focused={focused}
+            />
           ),
         }}
       />
       <Tabs.Screen
-        name="add-post"
+        name="get-referral"
         options={{
           headerShown: false,
-          title: "Post",
-          tabBarIcon: ({ color, size }) => (
-            <View className="bg-[#0077B5] rounded-full p-1 -mt-2">
-              <Ionicons name="add" size={size} color="white" />
-            </View>
+          title: "Referrals",
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedIcon
+              name="git-network-outline"
+              size={size}
+              color={color}
+              focused={focused}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          headerShown: false,
+          title: "Notifications",
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedIcon
+              name="notifications-outline"
+              size={size}
+              color={color}
+              focused={focused}
+            />
           ),
         }}
       />
@@ -55,19 +167,14 @@ export default function TabsLayout() {
         name="jobs"
         options={{
           headerShown: false,
-          title: "Opportunities",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="briefcase" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          headerShown: false,
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+          title: "Jobs",
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedIcon
+              name="briefcase-outline"
+              size={size}
+              color={color}
+              focused={focused}
+            />
           ),
         }}
       />
