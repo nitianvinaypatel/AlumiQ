@@ -24,6 +24,7 @@ import { MotiView, AnimatePresence } from "moti";
 import { SharedElement } from "react-navigation-shared-element";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import { useTheme, lightTheme, darkTheme } from "@/contexts/ThemeContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -40,6 +41,7 @@ interface InputFieldProps {
   blurOnSubmit?: boolean;
   ref?: React.RefObject<TextInput>;
   testID?: string;
+  isDarkMode?: boolean;
 }
 
 const InputField = React.forwardRef<TextInput, InputFieldProps>(
@@ -56,6 +58,7 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
       returnKeyType,
       blurOnSubmit,
       testID,
+      isDarkMode = false,
     },
     ref
   ) => {
@@ -94,21 +97,37 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
             shadowRadius: isFocused ? 8 : 4,
             elevation: isFocused ? 4 : 2,
           }}
-          className={`bg-white/90 rounded-xl overflow-hidden
-          ${isFocused ? "border-[#0077B5] border" : "border-gray-100 border"}
+          className={`${
+            isDarkMode ? "bg-gray-800/90" : "bg-white/90"
+          } rounded-xl overflow-hidden
+          ${
+            isFocused
+              ? "border-[#0077B5] border"
+              : isDarkMode
+              ? "border-gray-700 border"
+              : "border-gray-100 border"
+          }
           ${error ? "border-red-400" : ""}`}
           testID={`${testID}-container`}
         >
           <BlurView
             intensity={80}
-            tint="light"
+            tint={isDarkMode ? "dark" : "light"}
             className="flex-row items-center"
           >
             <View className="px-4 py-3.5">
               <Ionicons
                 name={icon}
                 size={20}
-                color={isFocused ? "#0077B5" : error ? "#EF4444" : "#94A3B8"}
+                color={
+                  isFocused
+                    ? "#0077B5"
+                    : error
+                    ? "#EF4444"
+                    : isDarkMode
+                    ? "#94A3B8"
+                    : "#94A3B8"
+                }
               />
             </View>
             <TextInput
@@ -123,8 +142,10 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
               }
               onFocus={handleFocus}
               onBlur={handleBlur}
-              className="flex-1 py-3.5 text-gray-700 pr-4 font-medium"
-              placeholderTextColor="#94A3B8"
+              className={`flex-1 py-3.5 pr-4 font-medium ${
+                isDarkMode ? "text-gray-200" : "text-gray-700"
+              }`}
+              placeholderTextColor={isDarkMode ? "#6B7280" : "#94A3B8"}
               onSubmitEditing={onSubmitEditing}
               returnKeyType={returnKeyType}
               blurOnSubmit={blurOnSubmit}
@@ -157,7 +178,8 @@ const SocialButton: React.FC<{
   label: string;
   onPress: () => void;
   testID?: string;
-}> = ({ icon, color, label, onPress, testID }) => {
+  isDarkMode?: boolean;
+}> = ({ icon, color, label, onPress, testID, isDarkMode = false }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -196,12 +218,22 @@ const SocialButton: React.FC<{
         }}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        className="bg-white/95 p-4 rounded-2xl border border-gray-200 flex-row items-center justify-center px-10 space-x-3"
+        className={`${
+          isDarkMode ? "bg-gray-800/95" : "bg-white/95"
+        } p-4 rounded-2xl ${
+          isDarkMode ? "border-gray-700" : "border-gray-200"
+        } border flex-row items-center justify-center px-10 space-x-3`}
         testID={testID}
         activeOpacity={0.9}
       >
         <Ionicons name={icon} size={24} color={color} />
-        <Text className="text-gray-900 font-semibold text-base">{label}</Text>
+        <Text
+          className={`${
+            isDarkMode ? "text-gray-200" : "text-gray-900"
+          } font-semibold text-base`}
+        >
+          {label}
+        </Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -223,6 +255,9 @@ export default function SignupScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isLoading, error } = useAppSelector((state) => state.auth);
+  const { theme, toggleTheme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const themeColors = isDarkMode ? darkTheme : lightTheme;
 
   const firstNameRef = useRef<TextInput>(null);
   const lastNameRef = useRef<TextInput>(null);
@@ -353,10 +388,9 @@ export default function SignupScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       dispatch(
         signUp({
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
           email: email.trim(),
           password: password.trim(),
+          fullName: `${firstName.trim()} ${lastName.trim()}`,
         })
       );
     } else {
@@ -384,7 +418,13 @@ export default function SignupScreen() {
     // Implement social sign-up logic
   };
 
-  const gradientColors = useMemo(() => ["#ffffff", "#f3f4f6", "#e5e7eb"], []);
+  const gradientColors = useMemo(
+    (): readonly [string, string, string] =>
+      isDarkMode
+        ? ["#1f2937", "#111827", "#0f172a"]
+        : ["#ffffff", "#f3f4f6", "#e5e7eb"],
+    [isDarkMode]
+  );
 
   return (
     <KeyboardAvoidingView
@@ -393,7 +433,7 @@ export default function SignupScreen() {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
       testID="signup-screen"
     >
-      <StatusBar style="dark" />
+      <StatusBar style={isDarkMode ? "light" : "dark"} />
       <LinearGradient colors={gradientColors} className="flex-1">
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -404,6 +444,25 @@ export default function SignupScreen() {
           className="px-6"
           showsVerticalScrollIndicator={false}
         >
+          <View className="absolute top-4 right-4 z-10">
+            <TouchableOpacity
+              onPress={() => {
+                toggleTheme();
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              }}
+              className={`p-2 rounded-full ${
+                isDarkMode ? "bg-gray-700" : "bg-gray-200"
+              }`}
+              testID="theme-toggle"
+            >
+              <Ionicons
+                name={isDarkMode ? "sunny-outline" : "moon-outline"}
+                size={24}
+                color={isDarkMode ? "#FCD34D" : "#4B5563"}
+              />
+            </TouchableOpacity>
+          </View>
+
           <Animated.View
             style={{
               opacity: fadeAnim,
@@ -430,10 +489,18 @@ export default function SignupScreen() {
               transition={{ type: "timing", duration: 1000 }}
               className={keyboardVisible ? "hidden" : ""}
             >
-              <Text className="text-3xl font-bold text-center text-gray-800 mt-4">
+              <Text
+                className={`text-3xl font-bold text-center ${
+                  isDarkMode ? "text-gray-100" : "text-gray-800"
+                } mt-4`}
+              >
                 Create Account
               </Text>
-              <Text className="text-center text-gray-500 mt-2">
+              <Text
+                className={`text-center ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                } mt-2`}
+              >
                 Join AlumiQ and connect with your community
               </Text>
             </MotiView>
@@ -447,7 +514,9 @@ export default function SignupScreen() {
                   animate={{ opacity: 1, translateY: 0 }}
                   exit={{ opacity: 0, translateY: -10 }}
                   transition={{ type: "timing", duration: 300 }}
-                  className="bg-red-50 p-4 rounded-xl backdrop-blur-lg"
+                  className={`${
+                    isDarkMode ? "bg-red-900/30" : "bg-red-50"
+                  } p-4 rounded-xl backdrop-blur-lg`}
                   testID="signup-error"
                 >
                   <Text className="text-red-500 text-center">{error}</Text>
@@ -469,6 +538,7 @@ export default function SignupScreen() {
               onSubmitEditing={() => lastNameRef.current?.focus()}
               blurOnSubmit={false}
               testID="first-name-input"
+              isDarkMode={isDarkMode}
             />
 
             <InputField
@@ -485,6 +555,7 @@ export default function SignupScreen() {
               onSubmitEditing={() => emailRef.current?.focus()}
               blurOnSubmit={false}
               testID="last-name-input"
+              isDarkMode={isDarkMode}
             />
 
             <InputField
@@ -502,6 +573,7 @@ export default function SignupScreen() {
               onSubmitEditing={() => passwordRef.current?.focus()}
               blurOnSubmit={false}
               testID="email-input"
+              isDarkMode={isDarkMode}
             />
 
             <View className="relative">
@@ -519,6 +591,7 @@ export default function SignupScreen() {
                 returnKeyType="go"
                 onSubmitEditing={handleSignup}
                 testID="password-input"
+                isDarkMode={isDarkMode}
               />
               <TouchableOpacity
                 onPress={() => {
@@ -531,7 +604,7 @@ export default function SignupScreen() {
                 <Ionicons
                   name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={20}
-                  color="#64748B"
+                  color={isDarkMode ? "#9CA3AF" : "#64748B"}
                 />
               </TouchableOpacity>
             </View>
@@ -569,7 +642,11 @@ export default function SignupScreen() {
             </Animated.View>
 
             <View className="flex-row justify-center mt-4">
-              <Text className="text-gray-500">Already have an account? </Text>
+              <Text
+                className={`${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
+                Already have an account?{" "}
+              </Text>
               <Link href="/(auth)/login" asChild>
                 <TouchableOpacity
                   testID="login-link"
@@ -584,9 +661,23 @@ export default function SignupScreen() {
 
             <View className="mt-4">
               <View className="flex-row items-center mb-6">
-                <View className="flex-1 h-[1px] bg-gray-200" />
-                <Text className="mx-4 text-gray-500">or continue with</Text>
-                <View className="flex-1 h-[1px] bg-gray-200" />
+                <View
+                  className={`flex-1 h-[1px] ${
+                    isDarkMode ? "bg-gray-700" : "bg-gray-200"
+                  }`}
+                />
+                <Text
+                  className={`mx-4 ${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  or continue with
+                </Text>
+                <View
+                  className={`flex-1 h-[1px] ${
+                    isDarkMode ? "bg-gray-700" : "bg-gray-200"
+                  }`}
+                />
               </View>
               <View className="flex-col justify-center space-y-4 gap-3">
                 <SocialButton
@@ -595,6 +686,7 @@ export default function SignupScreen() {
                   label="Sign up with Google"
                   onPress={() => handleSocialSignUp("Google")}
                   testID="google-sign-up"
+                  isDarkMode={isDarkMode}
                 />
                 <SocialButton
                   icon="logo-facebook"
@@ -602,6 +694,7 @@ export default function SignupScreen() {
                   label="Sign up with Facebook"
                   onPress={() => handleSocialSignUp("Facebook")}
                   testID="facebook-sign-up"
+                  isDarkMode={isDarkMode}
                 />
               </View>
             </View>

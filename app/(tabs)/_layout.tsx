@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
+import { useTheme, lightTheme, darkTheme } from "@/contexts/ThemeContext";
 
 // Custom animated tab bar icon component
 interface AnimatedIconProps {
@@ -43,11 +44,16 @@ const AnimatedIcon = ({ name, color, size, focused }: AnimatedIconProps) => {
 };
 
 export default function TabsLayout() {
+  // Get current theme
+  const { theme: themeType } = useTheme();
+  const isDarkMode = themeType === "dark";
+  const theme = isDarkMode ? darkTheme : lightTheme;
+
   // Determine if we're on iOS for the blur effect
   const isIOS = Platform.OS === "ios";
 
   // LinkedIn-inspired colors
-  const LINKEDIN_BLUE = "#0A66C2";
+  const LINKEDIN_BLUE = theme.primary;
 
   // Tab bar style with conditional blur effect
   const tabBarStyle = useMemo(
@@ -56,26 +62,32 @@ export default function TabsLayout() {
       paddingTop: 8,
       height: 60,
       borderTopWidth: 0.5,
-      borderTopColor: "rgba(0, 0, 0, 0.1)",
+      borderTopColor: isDarkMode
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(0, 0, 0, 0.1)",
       elevation: 8,
-      shadowColor: "#000",
+      shadowColor: isDarkMode ? "#000" : "#000",
       shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.1,
+      shadowOpacity: isDarkMode ? 0.2 : 0.1,
       shadowRadius: 3,
-      backgroundColor: isIOS ? "rgba(255, 255, 255, 0.85)" : "white",
+      backgroundColor: isDarkMode
+        ? theme.cardBackground
+        : isIOS
+        ? "rgba(255, 255, 255, 0.85)"
+        : "white",
     }),
-    [isIOS]
+    [isIOS, isDarkMode, theme]
   );
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: LINKEDIN_BLUE, // LinkedIn blue color
-        tabBarInactiveTintColor: "#666",
+        tabBarInactiveTintColor: isDarkMode ? "#aaa" : "#666",
         tabBarStyle: tabBarStyle,
         headerShown: true,
         headerStyle: {
-          backgroundColor: LINKEDIN_BLUE,
+          backgroundColor: theme.primary,
         },
         headerTintColor: "#fff",
         headerTitleStyle: {
@@ -91,7 +103,7 @@ export default function TabsLayout() {
           isIOS ? (
             <BlurView
               intensity={80}
-              tint="light"
+              tint={isDarkMode ? "dark" : "light"}
               style={{
                 position: "absolute",
                 top: 0,

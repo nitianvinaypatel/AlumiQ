@@ -18,6 +18,8 @@ import {
 import { useState, useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Header from "@/components/home/Header";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/constants/theme";
 
 const { width } = Dimensions.get("window");
 
@@ -159,6 +161,11 @@ export default function NetworkScreen() {
   const [suggestions, setSuggestions] = useState(suggestedPeople);
   const scrollY = useRef(new Animated.Value(0)).current;
   const [searchFocused, setSearchFocused] = useState(false);
+  
+  // Get current theme
+  const { theme: themeType } = useTheme();
+  const isDarkMode = themeType === "dark";
+  const themeColors = isDarkMode ? darkTheme : lightTheme;
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -193,62 +200,7 @@ export default function NetworkScreen() {
   });
 
   return (
-    <View className="flex-1 bg-gray-50">
-      {/* Enhanced Header */}
-
-      {/* <Animated.View
-        style={{
-          opacity: headerOpacity,
-          elevation: headerElevation,
-        }}
-        className="bg-white px-4 pt-10 py-2 flex-row items-center justify-between border-b border-gray-200 shadow-sm"
-      >
-        <View className="flex-row items-center gap-3 flex-1">
-          <View className="relative">
-            <Image
-              source={{
-                uri: "https://randomuser.me/api/portraits/women/1.jpg",
-              }}
-              className="w-11 h-11 rounded-full border-2 border-blue-500"
-            />
-            <View className="absolute bottom-0 right-0 bg-green-500 w-3 h-3 rounded-full border border-white"></View>
-          </View>
-          <View
-            className={`flex-1 flex-row items-center bg-gray-100 rounded-full ${
-              searchFocused ? "border border-blue-400" : ""
-            }`}
-          >
-            <Ionicons
-              name="search"
-              size={18}
-              color="#6b7280"
-              style={{ marginLeft: 12 }}
-            />
-            <TextInput
-              placeholder="Search alumni..."
-              className="px-2 py-2 text-sm flex-1"
-              placeholderTextColor="#6b7280"
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-            />
-          </View>
-        </View>
-        <View className="flex-row items-center">
-          <TouchableOpacity activeOpacity={0.7} className="mr-3 relative">
-            <Ionicons name="notifications-outline" size={24} color="#0077B5" />
-            <View className="absolute -top-1 -right-1 bg-red-500 w-4 h-4 rounded-full flex items-center justify-center">
-              <Text className="text-white text-xs font-bold">3</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.7}>
-            <Ionicons
-              name="chatbubble-ellipses-outline"
-              size={24}
-              color="#0077B5"
-            />
-          </TouchableOpacity>
-        </View>
-      </Animated.View> */}
+    <View className={`flex-1 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}>
       <Header scrollY={scrollY} />
 
       <Animated.ScrollView
@@ -263,14 +215,14 @@ export default function NetworkScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#0077B5"]}
-            tintColor="#0077B5"
+            colors={[themeColors.primary]}
+            tintColor={themeColors.primary}
           />
         }
       >
         {/* Network Stats Cards */}
-        <View className="px-4 py-3">
-          <Text className="font-bold text-lg text-gray-800 mb-3">
+        <View className={`px-4 py-3 ${isDarkMode ? "" : ""}`}>
+          <Text className={`font-bold text-lg ${isDarkMode ? "text-gray-100" : "text-gray-800"} mb-3`}>
             Network Overview
           </Text>
           <ScrollView
@@ -281,7 +233,7 @@ export default function NetworkScreen() {
             {networkStats.map((stat) => (
               <TouchableOpacity
                 key={stat.id}
-                className="mr-3 bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+                className={`mr-3 ${isDarkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-sm overflow-hidden border ${isDarkMode ? "border-gray-700" : "border-gray-100"}`}
                 style={{ width: width * 0.4 }}
                 activeOpacity={0.8}
               >
@@ -290,19 +242,19 @@ export default function NetworkScreen() {
                   className="p-4"
                 >
                   <View className="flex-row items-center justify-between mb-2">
-                    <View className="bg-white p-2 rounded-lg">
+                    <View className={`${isDarkMode ? "bg-gray-700" : "bg-white"} p-2 rounded-lg`}>
                       <Ionicons name={stat.icon} size={20} color={stat.color} />
                     </View>
                     <Ionicons
                       name="chevron-forward-circle-outline"
                       size={16}
-                      color="#0077B5"
+                      color={themeColors.primary}
                     />
                   </View>
-                  <Text className="font-bold text-2xl text-gray-800">
+                  <Text className={`font-bold text-2xl ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
                     {stat.count}
                   </Text>
-                  <Text className="text-gray-600 mt-1">{stat.label}</Text>
+                  <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} mt-1`}>{stat.label}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             ))}
@@ -310,9 +262,9 @@ export default function NetworkScreen() {
         </View>
 
         {/* Upcoming Events */}
-        <View className="mt-2 bg-white p-4">
+        <View className={`mt-2 ${isDarkMode ? "bg-gray-800" : "bg-white"} p-4`}>
           <View className="flex-row items-center justify-between mb-3">
-            <Text className="font-bold text-lg text-gray-800">
+            <Text className={`font-bold text-lg ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
               Upcoming Events
             </Text>
             <TouchableOpacity className="flex-row items-center">
@@ -320,7 +272,7 @@ export default function NetworkScreen() {
               <Ionicons
                 name="chevron-forward-circle-outline"
                 size={16}
-                color="#0077B5"
+                color={themeColors.primary}
               />
             </TouchableOpacity>
           </View>
@@ -333,7 +285,7 @@ export default function NetworkScreen() {
             {upcomingEvents.map((event) => (
               <TouchableOpacity
                 key={event.id}
-                className="mr-4 bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+                className={`mr-4 ${isDarkMode ? "bg-gray-700" : "bg-white"} rounded-xl shadow-sm overflow-hidden border ${isDarkMode ? "border-gray-700" : "border-gray-100"}`}
                 style={{ width: width * 0.7 }}
                 activeOpacity={0.8}
               >
@@ -343,15 +295,15 @@ export default function NetworkScreen() {
                   resizeMode="cover"
                 />
                 <View className="p-3">
-                  <Text className="font-bold text-gray-800">{event.title}</Text>
+                  <Text className={`font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>{event.title}</Text>
                   <View className="flex-row items-center justify-between mt-2">
                     <View className="flex-row items-center">
                       <Ionicons
                         name="calendar-outline"
                         size={14}
-                        color="#0077B5"
+                        color={themeColors.primary}
                       />
-                      <Text className="text-gray-600 text-xs ml-1">
+                      <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} text-xs ml-1`}>
                         {event.date}
                       </Text>
                     </View>
@@ -359,9 +311,9 @@ export default function NetworkScreen() {
                       <Ionicons
                         name="location-outline"
                         size={14}
-                        color="#0077B5"
+                        color={themeColors.primary}
                       />
-                      <Text className="text-gray-600 text-xs ml-1">
+                      <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} text-xs ml-1`}>
                         {event.location}
                       </Text>
                     </View>
@@ -381,7 +333,7 @@ export default function NetworkScreen() {
                           />
                         ))}
                       </View>
-                      <Text className="text-gray-600 text-xs ml-1">
+                      <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} text-xs ml-1`}>
                         +{event.attendees} attending
                       </Text>
                     </View>
@@ -399,9 +351,9 @@ export default function NetworkScreen() {
 
         {/* Invitations */}
         {invitations.length > 0 && (
-          <View className="bg-white p-4 mt-2">
+          <View className={`${isDarkMode ? "bg-gray-800" : "bg-white"} p-4 mt-2`}>
             <View className="flex-row justify-between items-center mb-2">
-              <Text className="font-bold text-lg text-gray-800">
+              <Text className={`font-bold text-lg ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
                 Invitations
               </Text>
               {invitations.length > 2 && (
@@ -409,7 +361,7 @@ export default function NetworkScreen() {
                   <Text className="text-blue-600 font-medium mr-1">
                     See all
                   </Text>
-                  <Feather name="chevron-right" size={16} color="#0077B5" />
+                  <Feather name="chevron-right" size={16} color={themeColors.primary} />
                 </TouchableOpacity>
               )}
             </View>
@@ -418,7 +370,7 @@ export default function NetworkScreen() {
             {invitations.map((invitation) => (
               <View
                 key={invitation.id}
-                className="mt-3 bg-white rounded-xl border border-gray-100 shadow-sm p-3"
+                className={`mt-3 ${isDarkMode ? "bg-gray-700" : "bg-white"} rounded-xl border ${isDarkMode ? "border-gray-600" : "border-gray-100"} shadow-sm p-3`}
               >
                 <View className="flex-row">
                   <Image
@@ -427,27 +379,27 @@ export default function NetworkScreen() {
                   />
                   <View className="ml-3 flex-1">
                     <View className="flex-row items-center">
-                      <Text className="font-bold text-gray-800">
+                      <Text className={`font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
                         {invitation.name}
                       </Text>
                       {invitation.isAlumni && (
-                        <View className="ml-2 bg-blue-100 px-1.5 py-0.5 rounded">
-                          <Text className="text-blue-700 text-xs font-medium">
+                        <View className={`ml-2 ${isDarkMode ? "bg-blue-900" : "bg-blue-100"} px-1.5 py-0.5 rounded`}>
+                          <Text className={`${isDarkMode ? "text-blue-300" : "text-blue-700"} text-xs font-medium`}>
                             Alumni
                           </Text>
                         </View>
                       )}
                     </View>
-                    <Text className="text-gray-600 text-sm">
+                    <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} text-sm`}>
                       {invitation.title}
                     </Text>
                     <View className="flex-row items-center mt-1">
                       <Ionicons
                         name="school-outline"
                         size={12}
-                        color="#6b7280"
+                        color={isDarkMode ? "#9CA3AF" : "#6b7280"}
                       />
-                      <Text className="text-gray-500 text-xs ml-1">
+                      <Text className={`${isDarkMode ? "text-gray-400" : "text-gray-500"} text-xs ml-1`}>
                         {invitation.university}
                       </Text>
                     </View>
@@ -465,18 +417,18 @@ export default function NetworkScreen() {
                           />
                         ))}
                       </View>
-                      <Text className="text-gray-500 text-xs ml-1">
+                      <Text className={`${isDarkMode ? "text-gray-400" : "text-gray-500"} text-xs ml-1`}>
                         {invitation.mutualConnections} mutual connections
                       </Text>
                     </View>
                   </View>
                 </View>
-                <View className="flex-row mt-3 pt-2 border-t border-gray-100">
+                <View className={`flex-row mt-3 pt-2 border-t ${isDarkMode ? "border-gray-600" : "border-gray-100"}`}>
                   <TouchableOpacity
-                    className="flex-1 flex-row justify-center items-center py-2 mr-2 border border-gray-300 rounded-md"
+                    className={`flex-1 flex-row justify-center items-center py-2 mr-2 border ${isDarkMode ? "border-gray-600" : "border-gray-300"} rounded-md`}
                     onPress={() => handleIgnoreInvitation(invitation.id)}
                   >
-                    <Text className="text-gray-700 font-medium">Ignore</Text>
+                    <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-700"} font-medium`}>Ignore</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     className="flex-1 flex-row justify-center items-center py-2 bg-blue-500 rounded-md"
@@ -491,9 +443,9 @@ export default function NetworkScreen() {
         )}
 
         {/* People You May Know */}
-        <View className="bg-white p-4 mt-2 mb-4">
+        <View className={`${isDarkMode ? "bg-gray-800" : "bg-white"} p-4 mt-2 mb-4`}>
           <View className="flex-row justify-between items-center mb-3">
-            <Text className="font-bold text-lg text-gray-800">
+            <Text className={`font-bold text-lg ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
               People you may know
             </Text>
             <TouchableOpacity className="flex-row items-center">
@@ -501,7 +453,7 @@ export default function NetworkScreen() {
               <Ionicons
                 name="chevron-forward-circle-outline"
                 size={16}
-                color="#0077B5"
+                color={themeColors.primary}
               />
             </TouchableOpacity>
           </View>
@@ -510,7 +462,7 @@ export default function NetworkScreen() {
           {suggestions.map((person) => (
             <View
               key={person.id}
-              className="mt-3 bg-white rounded-xl border border-gray-100 shadow-sm p-3 mb-3"
+              className={`mt-3 ${isDarkMode ? "bg-gray-700" : "bg-white"} rounded-xl border ${isDarkMode ? "border-gray-600" : "border-gray-100"} shadow-sm p-3 mb-3`}
             >
               <View className="flex-row">
                 <Image
@@ -520,31 +472,31 @@ export default function NetworkScreen() {
                 <View className="ml-3 flex-1">
                   <View className="flex-row items-center justify-between">
                     <View className="flex-1">
-                      <Text className="font-bold text-gray-800">
+                      <Text className={`font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
                         {person.name}
                       </Text>
-                      <Text className="text-gray-600 text-sm">
+                      <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} text-sm`}>
                         {person.title}
                       </Text>
                     </View>
                     <TouchableOpacity
                       onPress={() => handleDismissSuggestion(person.id)}
                     >
-                      <Ionicons name="close" size={18} color="#666" />
+                      <Ionicons name="close" size={18} color={isDarkMode ? "#9CA3AF" : "#666"} />
                     </TouchableOpacity>
                   </View>
 
                   <View className="flex-row items-center mt-1">
-                    <Ionicons name="school-outline" size={12} color="#6b7280" />
-                    <Text className="text-gray-500 text-xs ml-1">
+                    <Ionicons name="school-outline" size={12} color={isDarkMode ? "#9CA3AF" : "#6b7280"} />
+                    <Text className={`${isDarkMode ? "text-gray-400" : "text-gray-500"} text-xs ml-1`}>
                       {person.university} • {person.graduationYear} •{" "}
                       {person.department}
                     </Text>
                   </View>
 
                   <View className="flex-row items-center mt-1">
-                    <View className="bg-gray-100 rounded-full px-2 py-0.5">
-                      <Text className="text-gray-600 text-xs">
+                    <View className={`${isDarkMode ? "bg-gray-600" : "bg-gray-100"} rounded-full px-2 py-0.5`}>
+                      <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} text-xs`}>
                         {person.reason}
                       </Text>
                     </View>
@@ -558,7 +510,7 @@ export default function NetworkScreen() {
                             className="w-4 h-4 rounded-full border border-white"
                           />
                         </View>
-                        <Text className="text-gray-500 text-xs ml-1">
+                        <Text className={`${isDarkMode ? "text-gray-400" : "text-gray-500"} text-xs ml-1`}>
                           {person.mutualConnections} mutual
                         </Text>
                       </View>
@@ -567,24 +519,24 @@ export default function NetworkScreen() {
                 </View>
               </View>
 
-              <View className="flex-row mt-3 pt-2 border-t border-gray-100">
-                <TouchableOpacity className="flex-row items-center justify-center py-2 px-4 bg-blue-50 rounded-md mr-2">
+              <View className={`flex-row mt-3 pt-2 border-t ${isDarkMode ? "border-gray-600" : "border-gray-100"}`}>
+                <TouchableOpacity className={`flex-row items-center justify-center py-2 px-4 ${isDarkMode ? "bg-blue-900" : "bg-blue-50"} rounded-md mr-2`}>
                   <Ionicons
                     name="person-add-outline"
                     size={16}
-                    color="#0077B5"
+                    color={themeColors.primary}
                   />
                   <Text className="text-blue-600 font-medium ml-1">
                     Connect
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity className="flex-row items-center justify-center py-2 px-4 border border-gray-200 rounded-md">
+                <TouchableOpacity className={`flex-row items-center justify-center py-2 px-4 border ${isDarkMode ? "border-gray-600" : "border-gray-200"} rounded-md`}>
                   <Ionicons
                     name="chatbubble-ellipses-outline"
                     size={16}
-                    color="#666"
+                    color={isDarkMode ? "#9CA3AF" : "#666"}
                   />
-                  <Text className="text-gray-700 font-medium ml-1">
+                  <Text className={`${isDarkMode ? "text-gray-300" : "text-gray-700"} font-medium ml-1`}>
                     Message
                   </Text>
                 </TouchableOpacity>
@@ -599,7 +551,7 @@ export default function NetworkScreen() {
             <Ionicons
               name="chevron-down-circle-outline"
               size={16}
-              color="#0077B5"
+              color={themeColors.primary}
             />
           </TouchableOpacity>
         </View>

@@ -26,6 +26,8 @@ import ReAnimated, {
   interpolate,
   Extrapolate,
 } from "react-native-reanimated";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/contexts/ThemeContext";
 
 // Define notification interface with more detailed typing
 interface User {
@@ -259,6 +261,11 @@ export default function NotificationsTab() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [refreshing, setRefreshing] = useState(false);
 
+  // Get the theme from context
+  const { theme: themeType } = useTheme();
+  const isDarkMode = themeType === "dark";
+  const theme = isDarkMode ? darkTheme : lightTheme;
+
   // Mark notification as read
   const markAsRead = useCallback((id: string) => {
     setNotifications((prev) =>
@@ -395,8 +402,16 @@ export default function NotificationsTab() {
           >
             <Animated.View style={animatedStyle}>
               <TouchableOpacity
-                className={`p-4 border-b border-gray-100 ${
-                  item.isRead ? "bg-white" : "bg-blue-50/10"
+                className={`p-4 border-b ${
+                  isDarkMode ? "border-gray-700" : "border-gray-100"
+                } ${
+                  item.isRead
+                    ? isDarkMode
+                      ? "bg-gray-800"
+                      : "bg-white"
+                    : isDarkMode
+                    ? "bg-blue-900/10"
+                    : "bg-blue-50/10"
                 }`}
                 onPress={() => markAsRead(item.id)}
                 activeOpacity={0.7}
@@ -404,7 +419,11 @@ export default function NotificationsTab() {
                 <View className="flex-row">
                   {item.user ? (
                     <View className="mr-3">
-                      <View className="rounded-full overflow-hidden border border-gray-100 shadow-sm">
+                      <View
+                        className={`rounded-full overflow-hidden border ${
+                          isDarkMode ? "border-gray-700" : "border-gray-100"
+                        } shadow-sm`}
+                      >
                         <Image
                           source={{ uri: item.user.avatar }}
                           className="w-12 h-12"
@@ -419,7 +438,13 @@ export default function NotificationsTab() {
                     </View>
                   ) : (
                     <View className="mr-3">
-                      <View className="w-12 h-12 rounded-full bg-blue-50 items-center justify-center border border-gray-100 shadow-sm">
+                      <View
+                        className={`w-12 h-12 rounded-full ${
+                          isDarkMode ? "bg-blue-900/30" : "bg-blue-50"
+                        } items-center justify-center border ${
+                          isDarkMode ? "border-gray-700" : "border-gray-100"
+                        } shadow-sm`}
+                      >
                         <Ionicons
                           name={
                             item.category === "event"
@@ -431,7 +456,7 @@ export default function NotificationsTab() {
                               : "notifications-outline"
                           }
                           size={22}
-                          color="#0077B5"
+                          color={isDarkMode ? "#60A5FA" : "#0077B5"}
                         />
                       </View>
                       {!item.isRead && (
@@ -445,11 +470,19 @@ export default function NotificationsTab() {
 
                   <View className="flex-1">
                     <View className="flex-row justify-between items-start">
-                      <Text className="font-semibold text-gray-800 flex-1">
+                      <Text
+                        className={`font-semibold ${
+                          isDarkMode ? "text-gray-100" : "text-gray-800"
+                        } flex-1`}
+                      >
                         {item.title}
                       </Text>
                       <View className="flex-row items-center">
-                        <Text className="text-xs text-gray-500 mr-2">
+                        <Text
+                          className={`text-xs ${
+                            isDarkMode ? "text-gray-400" : "text-gray-500"
+                          } mr-2`}
+                        >
                           {item.timestamp}
                         </Text>
                         <TouchableOpacity
@@ -468,19 +501,27 @@ export default function NotificationsTab() {
                           <Ionicons
                             name="close-outline"
                             size={16}
-                            color="#999"
+                            color={isDarkMode ? "#9CA3AF" : "#999"}
                           />
                         </TouchableOpacity>
                       </View>
                     </View>
 
                     {item.user?.headline && (
-                      <Text className="text-xs text-gray-500 mt-0.5 mb-1">
+                      <Text
+                        className={`text-xs ${
+                          isDarkMode ? "text-gray-400" : "text-gray-500"
+                        } mt-0.5 mb-1`}
+                      >
                         {item.user.headline}
                       </Text>
                     )}
 
-                    <Text className="text-gray-700 mt-1 text-sm leading-5">
+                    <Text
+                      className={`${
+                        isDarkMode ? "text-gray-300" : "text-gray-700"
+                      } mt-1 text-sm leading-5`}
+                    >
                       {item.content}
                     </Text>
 
@@ -551,7 +592,13 @@ export default function NotificationsTab() {
 
                           {item.actions.secondary && (
                             <TouchableOpacity
-                              className="bg-white border border-gray-200 rounded-md px-4 py-2 flex-row items-center shadow-sm"
+                              className={`${
+                                isDarkMode ? "bg-gray-700" : "bg-white"
+                              } border ${
+                                isDarkMode
+                                  ? "border-gray-600"
+                                  : "border-gray-200"
+                              } rounded-md px-4 py-2 flex-row items-center shadow-sm`}
                               style={{ elevation: 1 }}
                               onPress={() =>
                                 handleAction(
@@ -570,11 +617,15 @@ export default function NotificationsTab() {
                                       : "arrow-forward-outline"
                                   }
                                   size={16}
-                                  color="#374151"
+                                  color={isDarkMode ? "#E5E7EB" : "#374151"}
                                   style={{ marginRight: 4 }}
                                 />
                               )}
-                              <Text className="text-gray-700 text-xs font-medium">
+                              <Text
+                                className={`${
+                                  isDarkMode ? "text-gray-200" : "text-gray-700"
+                                } text-xs font-medium`}
+                              >
                                 {item.actions.secondary.label}
                               </Text>
                             </TouchableOpacity>
@@ -590,7 +641,7 @@ export default function NotificationsTab() {
         </View>
       );
     },
-    [markAsRead, deleteNotification, handleAction]
+    [markAsRead, deleteNotification, handleAction, isDarkMode]
   );
 
   // Render section header
@@ -598,7 +649,11 @@ export default function NotificationsTab() {
     ({ section }: { section: { title: string } }) => (
       <ReAnimated.View
         entering={FadeIn.duration(400)}
-        className="bg-gray-50 px-4 py-3 border-b border-gray-200"
+        className={`${
+          isDarkMode ? "bg-gray-800" : "bg-gray-50"
+        } px-4 py-3 border-b ${
+          isDarkMode ? "border-gray-700" : "border-gray-200"
+        }`}
       >
         <View className="flex-row items-center">
           <Ionicons
@@ -612,16 +667,20 @@ export default function NotificationsTab() {
                 : "calendar-clear-outline"
             }
             size={16}
-            color="#666"
+            color={isDarkMode ? "#9CA3AF" : "#666"}
             style={{ marginRight: 6 }}
           />
-          <Text className="text-sm font-medium text-gray-600 tracking-wide">
+          <Text
+            className={`text-sm font-medium ${
+              isDarkMode ? "text-gray-300" : "text-gray-600"
+            } tracking-wide`}
+          >
             {section.title}
           </Text>
         </View>
       </ReAnimated.View>
     ),
-    []
+    [isDarkMode]
   );
 
   // Empty state component
@@ -633,18 +692,28 @@ export default function NotificationsTab() {
       >
         <ReAnimated.View
           entering={FadeIn.delay(300).duration(500)}
-          className="w-16 h-16 rounded-full bg-blue-50 items-center justify-center mb-4"
+          className={`w-16 h-16 rounded-full ${
+            isDarkMode ? "bg-blue-900/30" : "bg-blue-50"
+          } items-center justify-center mb-4`}
         >
           <Ionicons
             name="notifications-off-outline"
             size={32}
-            color="#0077B5"
+            color={isDarkMode ? "#60A5FA" : "#0077B5"}
           />
         </ReAnimated.View>
-        <Text className="text-xl font-semibold text-gray-800 mt-2 text-center">
+        <Text
+          className={`text-xl font-semibold ${
+            isDarkMode ? "text-gray-100" : "text-gray-800"
+          } mt-2 text-center`}
+        >
           No Notifications
         </Text>
-        <Text className="text-gray-500 text-center mt-2 max-w-xs leading-5">
+        <Text
+          className={`${
+            isDarkMode ? "text-gray-400" : "text-gray-500"
+          } text-center mt-2 max-w-xs leading-5`}
+        >
           {notificationsEnabled
             ? filter !== "all"
               ? `You don't have any ${filter} notifications at the moment.`
@@ -664,7 +733,7 @@ export default function NotificationsTab() {
         )}
       </ReAnimated.View>
     ),
-    [notificationsEnabled, filter]
+    [notificationsEnabled, filter, isDarkMode]
   );
 
   // Notifications disabled state
@@ -676,18 +745,28 @@ export default function NotificationsTab() {
       >
         <ReAnimated.View
           entering={FadeIn.delay(300).duration(500)}
-          className="w-20 h-20 rounded-full bg-gray-100 items-center justify-center mb-4"
+          className={`w-20 h-20 rounded-full ${
+            isDarkMode ? "bg-gray-700" : "bg-gray-100"
+          } items-center justify-center mb-4`}
         >
           <Ionicons
             name="notifications-off-outline"
             size={40}
-            color="#9CA3AF"
+            color={isDarkMode ? "#6B7280" : "#9CA3AF"}
           />
         </ReAnimated.View>
-        <Text className="text-xl font-semibold text-gray-800 mt-2 text-center">
+        <Text
+          className={`text-xl font-semibold ${
+            isDarkMode ? "text-gray-100" : "text-gray-800"
+          } mt-2 text-center`}
+        >
           Notifications Disabled
         </Text>
-        <Text className="text-gray-500 text-center mt-2 mb-6 max-w-xs leading-5">
+        <Text
+          className={`${
+            isDarkMode ? "text-gray-400" : "text-gray-500"
+          } text-center mt-2 mb-6 max-w-xs leading-5`}
+        >
           Enable notifications to stay updated on connections, messages, and
           opportunities
         </Text>
@@ -701,7 +780,7 @@ export default function NotificationsTab() {
         </TouchableOpacity>
       </ReAnimated.View>
     ),
-    [toggleNotifications]
+    [toggleNotifications, isDarkMode]
   );
 
   // Floating settings button
@@ -734,11 +813,19 @@ export default function NotificationsTab() {
         >
           <Animated.View style={animatedStyle}>
             <TouchableOpacity
-              className="bg-white shadow-lg rounded-full w-12 h-12 items-center justify-center border border-gray-100"
+              className={`${
+                isDarkMode ? "bg-gray-800" : "bg-white"
+              } shadow-lg rounded-full w-12 h-12 items-center justify-center border ${
+                isDarkMode ? "border-gray-700" : "border-gray-100"
+              }`}
               style={{ elevation: 3 }}
               onPress={handlePress}
             >
-              <Ionicons name="settings-outline" size={22} color="#0077B5" />
+              <Ionicons
+                name="settings-outline"
+                size={22}
+                color={isDarkMode ? "#60A5FA" : "#0077B5"}
+              />
             </TouchableOpacity>
           </Animated.View>
         </ReAnimated.View>
@@ -747,14 +834,14 @@ export default function NotificationsTab() {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View className={`flex-1 ${isDarkMode ? "bg-gray-900" : "bg-white"}`}>
       <Stack.Screen
         options={{
           title: "Notifications",
           headerStyle: {
-            backgroundColor: "#ffffff",
+            backgroundColor: isDarkMode ? "#111827" : "#ffffff",
           },
-          headerTintColor: "#0077B5",
+          headerTintColor: isDarkMode ? "#60A5FA" : "#0077B5",
           headerShadowVisible: false,
           headerTitleStyle: {
             fontWeight: "600",
@@ -765,7 +852,7 @@ export default function NotificationsTab() {
               <Ionicons
                 name="notifications-outline"
                 size={24}
-                color="#0077B5"
+                color={isDarkMode ? "#60A5FA" : "#0077B5"}
               />
             </View>
           ),
@@ -779,31 +866,47 @@ export default function NotificationsTab() {
       {notifications.length > 0 && notificationsEnabled && (
         <ReAnimated.View
           entering={FadeIn.duration(400)}
-          className="bg-white border-b border-gray-200 shadow-sm"
+          className={`${isDarkMode ? "bg-gray-800" : "bg-white"} border-b ${
+            isDarkMode ? "border-gray-700" : "border-gray-200"
+          } shadow-sm`}
         >
-          <View className="px-4 py-3 flex-row justify-between items-center border-b border-gray-100">
+          <View
+            className={`px-4 py-3 flex-row justify-between items-center border-b ${
+              isDarkMode ? "border-gray-700" : "border-gray-100"
+            }`}
+          >
             <View className="flex-row items-center">
               <Ionicons
                 name="notifications-outline"
                 size={20}
-                color="#0077B5"
+                color={isDarkMode ? "#60A5FA" : "#0077B5"}
                 style={{ marginRight: 6 }}
               />
-              <Text className="text-base font-semibold text-gray-800">
+              <Text
+                className={`text-base font-semibold ${
+                  isDarkMode ? "text-gray-100" : "text-gray-800"
+                }`}
+              >
                 Notifications
               </Text>
             </View>
             {unreadCount > 0 && (
               <TouchableOpacity
-                className="flex-row items-center bg-blue-50 px-2 py-1 rounded-full"
+                className={`flex-row items-center ${
+                  isDarkMode ? "bg-blue-900/30" : "bg-blue-50"
+                } px-2 py-1 rounded-full`}
                 onPress={markAllAsRead}
               >
                 <Ionicons
                   name="checkmark-circle-outline"
                   size={16}
-                  color="#0077B5"
+                  color={isDarkMode ? "#60A5FA" : "#0077B5"}
                 />
-                <Text className="text-sm text-blue-600 font-medium ml-1">
+                <Text
+                  className={`text-sm ${
+                    isDarkMode ? "text-blue-400" : "text-blue-600"
+                  } font-medium ml-1`}
+                >
                   Mark all as read
                 </Text>
               </TouchableOpacity>
@@ -816,7 +919,9 @@ export default function NotificationsTab() {
               paddingHorizontal: 12,
               paddingVertical: 10,
             }}
-            className="border-b border-gray-100"
+            className={`border-b ${
+              isDarkMode ? "border-gray-700" : "border-gray-100"
+            }`}
           >
             <AnimatedFilterTab
               label="All"
@@ -824,6 +929,7 @@ export default function NotificationsTab() {
               active={filter === "all"}
               onPress={() => setFilter("all")}
               icon="bell"
+              isDarkMode={isDarkMode}
             />
             <AnimatedFilterTab
               label="Unread"
@@ -831,6 +937,7 @@ export default function NotificationsTab() {
               active={filter === "unread"}
               onPress={() => setFilter("unread")}
               icon="alert-circle"
+              isDarkMode={isDarkMode}
             />
             <AnimatedFilterTab
               label="Connections"
@@ -838,6 +945,7 @@ export default function NotificationsTab() {
               active={filter === "connections"}
               onPress={() => setFilter("connections")}
               icon="users"
+              isDarkMode={isDarkMode}
             />
             <AnimatedFilterTab
               label="Posts"
@@ -845,6 +953,7 @@ export default function NotificationsTab() {
               active={filter === "posts"}
               onPress={() => setFilter("posts")}
               icon="message-square"
+              isDarkMode={isDarkMode}
             />
             <AnimatedFilterTab
               label="Jobs"
@@ -852,6 +961,7 @@ export default function NotificationsTab() {
               active={filter === "jobs"}
               onPress={() => setFilter("jobs")}
               icon="briefcase"
+              isDarkMode={isDarkMode}
             />
           </ScrollView>
         </ReAnimated.View>
@@ -874,8 +984,9 @@ export default function NotificationsTab() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#0077B5"]}
-              tintColor="#0077B5"
+              colors={[theme.primary]}
+              tintColor={theme.primary}
+              progressBackgroundColor={isDarkMode ? "#1F2937" : "#FFFFFF"}
             />
           }
           stickySectionHeadersEnabled
@@ -897,12 +1008,26 @@ interface FilterTabProps {
   active: boolean;
   onPress: () => void;
   icon: any; // Using any to avoid type issues with Feather icons
+  isDarkMode?: boolean;
 }
 
-const FilterTab = ({ label, count, active, onPress, icon }: FilterTabProps) => (
+const FilterTab = ({
+  label,
+  count,
+  active,
+  onPress,
+  icon,
+  isDarkMode = false,
+}: FilterTabProps) => (
   <TouchableOpacity
     className={`px-4 py-3 mx-1 rounded-full flex-row items-center ${
-      active ? "bg-blue-50" : "bg-gray-50"
+      active
+        ? isDarkMode
+          ? "bg-blue-900/30"
+          : "bg-blue-50"
+        : isDarkMode
+        ? "bg-gray-700"
+        : "bg-gray-50"
     }`}
     onPress={onPress}
   >
@@ -922,12 +1047,26 @@ const FilterTab = ({ label, count, active, onPress, icon }: FilterTabProps) => (
             : "notifications-outline"
         }
         size={16}
-        color={active ? "#0077B5" : "#666"}
+        color={
+          active
+            ? isDarkMode
+              ? "#60A5FA"
+              : "#0077B5"
+            : isDarkMode
+            ? "#9CA3AF"
+            : "#666"
+        }
       />
     </View>
     <Text
       className={`text-sm font-medium ${
-        active ? "text-blue-700" : "text-gray-700"
+        active
+          ? isDarkMode
+            ? "text-blue-400"
+            : "text-blue-700"
+          : isDarkMode
+          ? "text-gray-300"
+          : "text-gray-700"
       }`}
     >
       {label}
@@ -935,7 +1074,7 @@ const FilterTab = ({ label, count, active, onPress, icon }: FilterTabProps) => (
     {count > 0 && (
       <View
         className={`ml-1 px-1.5 rounded-full ${
-          active ? "bg-blue-600" : "bg-gray-400"
+          active ? "bg-blue-600" : isDarkMode ? "bg-gray-600" : "bg-gray-400"
         }`}
       >
         <Text className="text-xs text-white">{count}</Text>
@@ -943,7 +1082,6 @@ const FilterTab = ({ label, count, active, onPress, icon }: FilterTabProps) => (
     )}
   </TouchableOpacity>
 );
-
 // Filter Tab Component with animation
 const AnimatedFilterTab = ({
   label,
@@ -951,6 +1089,7 @@ const AnimatedFilterTab = ({
   active,
   onPress,
   icon,
+  isDarkMode = false,
 }: FilterTabProps) => {
   const animatedScale = useSharedValue(1);
 
@@ -982,13 +1121,25 @@ const AnimatedFilterTab = ({
       <ReAnimated.View style={animatedStyle} entering={FadeIn.duration(400)}>
         <TouchableOpacity
           className={`px-4 py-3 mx-1 rounded-full flex-row items-center ${
-            active ? "bg-blue-50" : "bg-gray-50"
+            active
+              ? isDarkMode
+                ? "bg-blue-900/30"
+                : "bg-blue-50"
+              : isDarkMode
+              ? "bg-gray-700"
+              : "bg-gray-50"
           }`}
           onPress={handlePress}
         >
           <View
             className={`w-6 h-6 rounded-full items-center justify-center ${
-              active ? "bg-blue-100" : "bg-gray-200"
+              active
+                ? isDarkMode
+                  ? "bg-blue-800/50"
+                  : "bg-blue-100"
+                : isDarkMode
+                ? "bg-gray-600"
+                : "bg-gray-200"
             }`}
           >
             <Ionicons
@@ -1004,12 +1155,26 @@ const AnimatedFilterTab = ({
                   : "notifications-outline"
               }
               size={16}
-              color={active ? "#0077B5" : "#666"}
+              color={
+                active
+                  ? isDarkMode
+                    ? "#60A5FA"
+                    : "#0077B5"
+                  : isDarkMode
+                  ? "#9CA3AF"
+                  : "#666"
+              }
             />
           </View>
           <Text
             className={`text-sm font-medium ${
-              active ? "text-blue-700" : "text-gray-700"
+              active
+                ? isDarkMode
+                  ? "text-blue-400"
+                  : "text-blue-700"
+                : isDarkMode
+                ? "text-gray-300"
+                : "text-gray-700"
             }`}
           >
             {label}
@@ -1017,7 +1182,11 @@ const AnimatedFilterTab = ({
           {count > 0 && (
             <View
               className={`ml-1 px-1.5 rounded-full ${
-                active ? "bg-blue-600" : "bg-gray-400"
+                active
+                  ? "bg-blue-600"
+                  : isDarkMode
+                  ? "bg-gray-600"
+                  : "bg-gray-400"
               }`}
             >
               <Text className="text-xs text-white">{count}</Text>

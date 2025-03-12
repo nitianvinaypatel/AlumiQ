@@ -14,6 +14,8 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/contexts/ThemeContext";
 
 const PostSection = ({
   posts: initialPosts = [],
@@ -31,6 +33,13 @@ const PostSection = ({
   const [loadingStates, setLoadingStates] = useState<{
     [key: string]: boolean;
   }>({});
+
+  // Get the theme from context
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  
+  // Apply the theme values
+  const themeColors = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
     // Update posts when initialPosts changes (e.g., after a refresh)
@@ -157,7 +166,7 @@ const PostSection = ({
         from={{ opacity: 0, translateY: 20 }}
         animate={{ opacity: 1, translateY: 0 }}
         transition={{ type: "timing", duration: 350 }}
-        className="bg-white mt-2 p-4 shadow-sm rounded-lg"
+        className={`${isDarkMode ? "bg-gray-800" : "bg-white"} mt-2 p-4 shadow-sm rounded-lg`}
       >
         {/* Post header */}
         <View className="flex-row items-center justify-between">
@@ -168,16 +177,16 @@ const PostSection = ({
           >
             <Image
               source={{ uri: post.userImage }}
-              className="w-12 h-12 rounded-full border border-gray-200"
+              className={`w-12 h-12 rounded-full border ${isDarkMode ? "border-gray-700" : "border-gray-200"}`}
             />
             <View className="ml-3">
-              <Text className="font-bold text-gray-800">{post.userName}</Text>
-              <Text className="text-xs text-gray-500">{post.userTitle}</Text>
-              <Text className="text-xs text-gray-400">{post.timeAgo}</Text>
+              <Text className={`font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>{post.userName}</Text>
+              <Text className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>{post.userTitle}</Text>
+              <Text className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}>{post.timeAgo}</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity>
-            <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
+            <Ionicons name="ellipsis-horizontal" size={20} color={isDarkMode ? "#A0A0A0" : "#666"} />
           </TouchableOpacity>
         </View>
 
@@ -187,7 +196,7 @@ const PostSection = ({
           onPress={() => navigateToPostDetail(post)}
           className="mt-3"
         >
-          <Text className="text-gray-800 leading-6">{post.content}</Text>
+          <Text className={`${isDarkMode ? "text-gray-200" : "text-gray-800"} leading-6`}>{post.content}</Text>
           {post.image && (
             <Image
               source={{ uri: post.image }}
@@ -205,13 +214,13 @@ const PostSection = ({
                 <View className="bg-blue-500 w-5 h-5 rounded-full items-center justify-center">
                   <Ionicons name="heart" size={12} color="white" />
                 </View>
-                <Text className="ml-1 text-xs text-gray-500">
+                <Text className={`ml-1 text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
                   {formatCount(post.likes)}
                 </Text>
               </View>
             )}
             {post.comments > 0 && (
-              <Text className="text-xs text-gray-500">
+              <Text className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
                 {formatCount(post.comments)} comments
               </Text>
             )}
@@ -219,7 +228,7 @@ const PostSection = ({
         )}
 
         {/* Post actions */}
-        <View className="flex-row justify-between mt-3 pt-3 border-t border-gray-100">
+        <View className={`flex-row justify-between mt-3 pt-3 border-t ${isDarkMode ? "border-gray-700" : "border-gray-100"}`}>
           <TouchableOpacity
             className="flex-row items-center flex-1 justify-center"
             activeOpacity={0.7}
@@ -227,18 +236,16 @@ const PostSection = ({
             disabled={loadingStates[post.id]}
           >
             {loadingStates[post.id] ? (
-              <ActivityIndicator size="small" color="#0077B5" />
+              <ActivityIndicator size="small" color={themeColors.primary} />
             ) : (
               <>
                 <Ionicons
                   name={post.isLiked ? "heart" : "heart-outline"}
                   size={20}
-                  color={post.isLiked ? "#0077B5" : "#666"}
+                  color={post.isLiked ? themeColors.primary : isDarkMode ? "#A0A0A0" : "#666"}
                 />
                 <Text
-                  className={`ml-2 ${
-                    post.isLiked ? "text-blue-600" : "text-gray-600"
-                  }`}
+                  className={`ml-2 ${post.isLiked ? "text-blue-600" : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
                 >
                   Like
                 </Text>
@@ -251,8 +258,8 @@ const PostSection = ({
             activeOpacity={0.7}
             onPress={() => navigateToPostDetail(post)}
           >
-            <Ionicons name="chatbubble-outline" size={20} color="#666" />
-            <Text className="ml-2 text-gray-600">Comment</Text>
+            <Ionicons name="chatbubble-outline" size={20} color={isDarkMode ? "#A0A0A0" : "#666"} />
+            <Text className={`ml-2 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Comment</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -260,14 +267,14 @@ const PostSection = ({
             activeOpacity={0.7}
             onPress={() => handleShare(post)}
           >
-            <Ionicons name="share-outline" size={20} color="#666" />
-            <Text className="ml-2 text-gray-600">Share</Text>
+            <Ionicons name="share-outline" size={20} color={isDarkMode ? "#A0A0A0" : "#666"} />
+            <Text className={`ml-2 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Share</Text>
           </TouchableOpacity>
         </View>
 
         {/* Quick Comment Option */}
         <TouchableOpacity
-          className="mt-3 flex-row items-center bg-gray-50 rounded-full px-4 py-2"
+          className={`mt-3 flex-row items-center ${isDarkMode ? "bg-gray-700" : "bg-gray-50"} rounded-full px-4 py-2`}
           onPress={() => navigateToPostDetail(post)}
           activeOpacity={0.8}
         >
@@ -277,7 +284,7 @@ const PostSection = ({
             }}
             className="w-8 h-8 rounded-full"
           />
-          <Text className="ml-3 text-gray-400">Write a comment...</Text>
+          <Text className={`ml-3 ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}>Write a comment...</Text>
         </TouchableOpacity>
       </MotiView>
     );
@@ -295,9 +302,9 @@ const PostSection = ({
             <MaterialCommunityIcons
               name="post-outline"
               size={48}
-              color="#ccc"
+              color={isDarkMode ? "#4B5563" : "#ccc"}
             />
-            <Text className="mt-2 text-gray-500">No posts to display</Text>
+            <Text className={`mt-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>No posts to display</Text>
           </View>
         ) : (
           posts.map((post: any) => renderPost(post))

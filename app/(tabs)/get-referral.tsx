@@ -27,6 +27,8 @@ import * as Haptics from "expo-haptics";
 import { useDrawer } from "@/components/DrawerContext";
 import Header from "@/components/home/Header";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/constants/theme";
 
 // Type definitions
 type Referral = {
@@ -200,6 +202,9 @@ const triggerHaptic = (style = "light") => {
 const GetReferral = () => {
   const insets = useSafeAreaInsets();
   const { toggleDrawer } = useDrawer();
+  const { theme: themeType } = useTheme();
+  const isDarkMode = themeType === "dark";
+  const theme = isDarkMode ? darkTheme : lightTheme;
   const [activeTab, setActiveTab] = useState("opportunities");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -326,7 +331,11 @@ const GetReferral = () => {
         }}
       >
         <TouchableOpacity
-          className="bg-white rounded-xl shadow-md mb-4 overflow-hidden border border-gray-100"
+          className={`${
+            isDarkMode ? "bg-gray-800" : "bg-white"
+          } rounded-xl shadow-md mb-4 overflow-hidden border ${
+            isDarkMode ? "border-gray-700" : "border-gray-100"
+          }`}
           activeOpacity={0.95}
           onPress={() => toggleCardExpansion(item.id)}
           onLongPress={() => {
@@ -338,7 +347,11 @@ const GetReferral = () => {
           }}
         >
           <LinearGradient
-            colors={["rgba(37, 99, 235, 0.05)", "rgba(255, 255, 255, 0)"]}
+            colors={
+              isDarkMode
+                ? ["rgba(37, 99, 235, 0.1)", "rgba(0, 0, 0, 0)"]
+                : ["rgba(37, 99, 235, 0.05)", "rgba(255, 255, 255, 0)"]
+            }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             className="p-4"
@@ -347,19 +360,39 @@ const GetReferral = () => {
             <View className="flex-row items-center mb-3">
               <Image
                 source={{ uri: item.logo }}
-                className="w-12 h-12 rounded-lg bg-white p-1 shadow-sm"
+                className={`w-12 h-12 rounded-lg ${
+                  isDarkMode ? "bg-gray-700" : "bg-white"
+                } p-1 shadow-sm`}
                 resizeMode="contain"
               />
               <View className="ml-3 flex-1">
-                <Text className="font-bold text-gray-800 text-base">
+                <Text
+                  className={`font-bold ${
+                    isDarkMode ? "text-gray-100" : "text-gray-800"
+                  } text-base`}
+                >
                   {item.position}
                 </Text>
                 <View className="flex-row items-center mt-1">
-                  <Text className="text-gray-600 text-xs font-medium">
+                  <Text
+                    className={`${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    } text-xs font-medium`}
+                  >
                     {item.company}
                   </Text>
-                  <View className="h-1 w-1 rounded-full bg-gray-400 mx-2" />
-                  <Text className="text-gray-500 text-xs">{item.location}</Text>
+                  <View
+                    className={`h-1 w-1 rounded-full ${
+                      isDarkMode ? "bg-gray-500" : "bg-gray-400"
+                    } mx-2`}
+                  />
+                  <Text
+                    className={`${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    } text-xs`}
+                  >
+                    {item.location}
+                  </Text>
                 </View>
               </View>
               <TouchableOpacity
@@ -374,22 +407,36 @@ const GetReferral = () => {
                       : "bookmark-outline"
                   }
                   size={22}
-                  color={favorites.includes(item.id) ? "#2563EB" : "#9CA3AF"}
+                  color={
+                    favorites.includes(item.id)
+                      ? "#2563EB"
+                      : isDarkMode
+                      ? "#9CA3AF"
+                      : "#9CA3AF"
+                  }
                 />
               </TouchableOpacity>
             </View>
 
             {/* Job details */}
             {isExpanded && (
-              <View className="mb-3 bg-blue-50 p-3 rounded-lg">
+              <View
+                className={`mb-3 ${
+                  isDarkMode ? "bg-gray-700" : "bg-blue-50"
+                } p-3 rounded-lg`}
+              >
                 <View className="flex-row items-center justify-between mb-2">
                   <View className="flex-row items-center">
                     <FontAwesome5
                       name="money-bill-wave"
                       size={12}
-                      color="#6B7280"
+                      color={isDarkMode ? "#9CA3AF" : "#6B7280"}
                     />
-                    <Text className="text-gray-700 text-xs font-medium ml-2">
+                    <Text
+                      className={`${
+                        isDarkMode ? "text-gray-300" : "text-gray-700"
+                      } text-xs font-medium ml-2`}
+                    >
                       {item.salary || "Competitive"}
                     </Text>
                   </View>
@@ -397,9 +444,13 @@ const GetReferral = () => {
                     <MaterialCommunityIcons
                       name="calendar-clock"
                       size={14}
-                      color="#6B7280"
+                      color={isDarkMode ? "#9CA3AF" : "#6B7280"}
                     />
-                    <Text className="text-gray-700 text-xs font-medium ml-2">
+                    <Text
+                      className={`${
+                        isDarkMode ? "text-gray-300" : "text-gray-700"
+                      } text-xs font-medium ml-2`}
+                    >
                       Posted {item.postedDate}
                     </Text>
                   </View>
@@ -410,7 +461,11 @@ const GetReferral = () => {
                     size={12}
                     color="#6B7280"
                   />
-                  <Text className="text-gray-700 text-xs font-medium ml-2">
+                  <Text
+                    className={`${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    } text-xs font-medium ml-2`}
+                  >
                     {item.jobType || "Full-time"}
                   </Text>
                 </View>
@@ -422,9 +477,17 @@ const GetReferral = () => {
               {item.skills.map((skill: string, index: number) => (
                 <View
                   key={index}
-                  className="bg-blue-50 rounded-md px-3 py-1 mr-2 mb-1 border border-blue-100"
+                  className={`${
+                    isDarkMode ? "bg-blue-900/30" : "bg-blue-50"
+                  } rounded-md px-3 py-1 mr-2 mb-1 border ${
+                    isDarkMode ? "border-blue-800" : "border-blue-100"
+                  }`}
                 >
-                  <Text className="text-blue-700 text-xs font-medium">
+                  <Text
+                    className={`${
+                      isDarkMode ? "text-blue-300" : "text-blue-700"
+                    } text-xs font-medium`}
+                  >
                     {skill}
                   </Text>
                 </View>
@@ -432,17 +495,29 @@ const GetReferral = () => {
             </View>
 
             {/* Bottom section */}
-            <View className="flex-row items-center justify-between pt-2 border-t border-gray-100">
+            <View
+              className={`flex-row items-center justify-between pt-2 border-t ${
+                isDarkMode ? "border-gray-700" : "border-gray-100"
+              }`}
+            >
               <View className="flex-row items-center">
                 <Image
                   source={{ uri: item.postedBy.avatar }}
                   className="w-7 h-7 rounded-full border border-gray-200"
                 />
                 <View className="ml-2">
-                  <Text className="text-gray-700 text-xs font-medium">
+                  <Text
+                    className={`${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    } text-xs font-medium`}
+                  >
                     {item.postedBy.name}
                   </Text>
-                  <Text className="text-gray-500 text-xs">
+                  <Text
+                    className={`${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    } text-xs`}
+                  >
                     {item.postedBy.role}
                   </Text>
                 </View>
@@ -465,7 +540,11 @@ const GetReferral = () => {
 
   const renderMyReferralCard = ({ item }: { item: MyReferral }) => (
     <TouchableOpacity
-      className="bg-white rounded-xl shadow-md mb-4 overflow-hidden border border-gray-100"
+      className={`${
+        isDarkMode ? "bg-gray-800" : "bg-white"
+      } rounded-xl shadow-md mb-4 overflow-hidden border ${
+        isDarkMode ? "border-gray-700" : "border-gray-100"
+      }`}
       activeOpacity={0.95}
       onPress={() => {
         triggerHaptic();
@@ -484,10 +563,18 @@ const GetReferral = () => {
               className="w-10 h-10 rounded-full border border-gray-200"
             />
             <View className="ml-3">
-              <Text className="font-medium text-gray-800 text-sm">
+              <Text
+                className={`font-medium ${
+                  isDarkMode ? "text-gray-100" : "text-gray-800"
+                } text-sm`}
+              >
                 {item.candidate.name}
               </Text>
-              <Text className="text-gray-600 text-xs mt-1">
+              <Text
+                className={`${
+                  isDarkMode ? "text-gray-300" : "text-gray-600"
+                } text-xs mt-1`}
+              >
                 {item.position} at {item.company}
               </Text>
             </View>
@@ -506,26 +593,46 @@ const GetReferral = () => {
         </View>
 
         {/* Application details */}
-        <View className="mb-3 bg-gray-50 p-3 rounded-lg">
+        <View
+          className={`mb-3 ${
+            isDarkMode ? "bg-gray-700" : "bg-gray-50"
+          } p-3 rounded-lg`}
+        >
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
               <Ionicons name="calendar-outline" size={12} color="#6B7280" />
-              <Text className="text-gray-700 text-xs ml-2">
+              <Text
+                className={`${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                } text-xs ml-2`}
+              >
                 Applied: {item.applicationDate}
               </Text>
             </View>
             <View className="flex-row items-center">
               <Ionicons name="time-outline" size={12} color="#6B7280" />
-              <Text className="text-gray-700 text-xs ml-2">
+              <Text
+                className={`${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                } text-xs ml-2`}
+              >
                 Updated: {item.lastUpdate}
               </Text>
             </View>
           </View>
         </View>
 
-        <View className="flex-row justify-end pt-2 border-t border-gray-100">
+        <View
+          className={`flex-row justify-end pt-2 border-t ${
+            isDarkMode ? "border-gray-700" : "border-gray-100"
+          }`}
+        >
           <TouchableOpacity className="px-3 py-1.5">
-            <Text className="text-blue-600 text-xs font-medium">
+            <Text
+              className={`${
+                isDarkMode ? "text-blue-400" : "text-blue-600"
+              } text-xs font-medium`}
+            >
               View Details
             </Text>
           </TouchableOpacity>
@@ -535,29 +642,83 @@ const GetReferral = () => {
   );
 
   const renderSkeletonCard = () => (
-    <View className="bg-white rounded-xl shadow-sm mb-4 overflow-hidden border border-gray-100 p-4">
+    <View
+      className={`${
+        isDarkMode ? "bg-gray-800" : "bg-white"
+      } rounded-xl shadow-sm mb-4 overflow-hidden border ${
+        isDarkMode ? "border-gray-700" : "border-gray-100"
+      } p-4`}
+    >
       <View className="flex-row items-center mb-3">
-        <View className="w-12 h-12 rounded-lg bg-gray-200" />
+        <View
+          className={`w-12 h-12 rounded-lg ${
+            isDarkMode ? "bg-gray-700" : "bg-gray-200"
+          }`}
+        />
         <View className="ml-3 flex-1">
-          <View className="h-5 bg-gray-200 rounded-md w-3/4 mb-2" />
-          <View className="h-3 bg-gray-200 rounded-md w-1/2" />
+          <View
+            className={`h-5 ${
+              isDarkMode ? "bg-gray-700" : "bg-gray-200"
+            } rounded-md w-3/4 mb-2`}
+          />
+          <View
+            className={`h-3 ${
+              isDarkMode ? "bg-gray-700" : "bg-gray-200"
+            } rounded-md w-1/2`}
+          />
         </View>
-        <View className="w-8 h-8 rounded-md bg-gray-200" />
+        <View
+          className={`w-8 h-8 rounded-md ${
+            isDarkMode ? "bg-gray-700" : "bg-gray-200"
+          }`}
+        />
       </View>
       <View className="flex-row flex-wrap mb-4">
-        <View className="bg-gray-200 rounded-md h-6 w-20 mr-2 mb-1" />
-        <View className="bg-gray-200 rounded-md h-6 w-24 mr-2 mb-1" />
-        <View className="bg-gray-200 rounded-md h-6 w-16 mr-2 mb-1" />
+        <View
+          className={`${
+            isDarkMode ? "bg-gray-700" : "bg-gray-200"
+          } rounded-md h-6 w-20 mr-2 mb-1`}
+        />
+        <View
+          className={`${
+            isDarkMode ? "bg-gray-700" : "bg-gray-200"
+          } rounded-md h-6 w-24 mr-2 mb-1`}
+        />
+        <View
+          className={`${
+            isDarkMode ? "bg-gray-700" : "bg-gray-200"
+          } rounded-md h-6 w-16 mr-2 mb-1`}
+        />
       </View>
-      <View className="flex-row items-center justify-between pt-2 border-t border-gray-100">
+      <View
+        className={`flex-row items-center justify-between pt-2 border-t ${
+          isDarkMode ? "border-gray-700" : "border-gray-100"
+        }`}
+      >
         <View className="flex-row items-center">
-          <View className="w-7 h-7 rounded-full bg-gray-200" />
+          <View
+            className={`w-7 h-7 rounded-full ${
+              isDarkMode ? "bg-gray-700" : "bg-gray-200"
+            }`}
+          />
           <View className="ml-2">
-            <View className="h-3 bg-gray-200 rounded-md w-20 mb-1" />
-            <View className="h-3 bg-gray-200 rounded-md w-16" />
+            <View
+              className={`h-3 ${
+                isDarkMode ? "bg-gray-700" : "bg-gray-200"
+              } rounded-md w-20 mb-1`}
+            />
+            <View
+              className={`h-3 ${
+                isDarkMode ? "bg-gray-700" : "bg-gray-200"
+              } rounded-md w-16`}
+            />
           </View>
         </View>
-        <View className="bg-gray-200 rounded-md h-8 w-24" />
+        <View
+          className={`${
+            isDarkMode ? "bg-gray-700" : "bg-gray-200"
+          } rounded-md h-8 w-24`}
+        />
       </View>
     </View>
   );
@@ -575,6 +736,8 @@ const GetReferral = () => {
             className={`mr-2 px-4 py-2 rounded-full border ${
               activeFilter === filter.id
                 ? "bg-blue-600 border-blue-600"
+                : isDarkMode
+                ? "bg-gray-800 border-gray-700"
                 : "bg-white border-gray-200"
             }`}
             onPress={() => {
@@ -584,7 +747,11 @@ const GetReferral = () => {
           >
             <Text
               className={`text-xs font-medium ${
-                activeFilter === filter.id ? "text-white" : "text-gray-700"
+                activeFilter === filter.id
+                  ? "text-white"
+                  : isDarkMode
+                  ? "text-gray-300"
+                  : "text-gray-700"
               }`}
             >
               {filter.label}
@@ -596,13 +763,19 @@ const GetReferral = () => {
   );
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <StatusBar style="dark" />
+    <View className={`flex-1 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}>
+      <StatusBar style={isDarkMode ? "light" : "dark"} />
 
       <Header scrollY={scrollY} />
 
       {/* Tab Bar */}
-      <View className="flex-row bg-white px-5 py-3 border-b border-gray-200 shadow-sm">
+      <View
+        className={`flex-row ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        } px-5 py-3 border-b ${
+          isDarkMode ? "border-gray-700" : "border-gray-200"
+        } shadow-sm`}
+      >
         <TouchableOpacity
           className={`py-2 mr-8 ${
             activeTab === "opportunities"
@@ -613,7 +786,11 @@ const GetReferral = () => {
         >
           <Text
             className={`font-semibold ${
-              activeTab === "opportunities" ? "text-blue-600" : "text-gray-500"
+              activeTab === "opportunities"
+                ? "text-blue-600"
+                : isDarkMode
+                ? "text-gray-300"
+                : "text-gray-500"
             }`}
           >
             Opportunities
@@ -629,7 +806,11 @@ const GetReferral = () => {
         >
           <Text
             className={`font-semibold ${
-              activeTab === "my-referrals" ? "text-blue-600" : "text-gray-500"
+              activeTab === "my-referrals"
+                ? "text-blue-600"
+                : isDarkMode
+                ? "text-gray-300"
+                : "text-gray-500"
             }`}
           >
             My Referrals
@@ -646,19 +827,27 @@ const GetReferral = () => {
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="text-gray-500 mt-4 font-medium">
+          <Text
+            className={`mt-4 font-medium ${
+              isDarkMode ? "text-gray-300" : "text-gray-500"
+            }`}
+          >
             Processing your request...
           </Text>
         </View>
       ) : isInitialLoading ? (
         <FlatList
           data={[1, 2, 3]}
-          renderItem={renderSkeletonCard}
+          renderItem={() => renderSkeletonCard()}
           keyExtractor={(item) => item.toString()}
           contentContainerStyle={{ padding: 16 }}
           ListHeaderComponent={
             <View className="mb-4">
-              <View className="h-5 bg-gray-200 rounded-md w-1/3 mb-4" />
+              <View
+                className={`h-5 ${
+                  isDarkMode ? "bg-gray-700" : "bg-gray-200"
+                } rounded-md w-1/3 mb-4`}
+              />
               {renderFilterChips()}
             </View>
           }
@@ -668,13 +857,23 @@ const GetReferral = () => {
           data={filteredOpportunities}
           renderItem={renderOpportunityCard}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={{ padding: 10 }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[theme.primary]}
+              tintColor={theme.primary}
+              progressBackgroundColor={isDarkMode ? "#1F2937" : "#FFFFFF"}
+            />
           }
           ListHeaderComponent={
             <View className="mb-4">
-              <Text className="text-gray-700 text-sm font-medium mb-4">
+              <Text
+                className={`text-sm font-medium mb-4 ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
                 {filteredOpportunities.length} available opportunities
               </Text>
               {renderFilterChips()}
@@ -682,11 +881,23 @@ const GetReferral = () => {
           }
           ListEmptyComponent={
             <View className="flex-1 items-center justify-center py-16">
-              <Ionicons name="search-outline" size={48} color="#9CA3AF" />
-              <Text className="text-gray-800 text-lg font-bold mt-4">
+              <Ionicons
+                name="search-outline"
+                size={48}
+                color={isDarkMode ? "#6B7280" : "#9CA3AF"}
+              />
+              <Text
+                className={`text-lg font-bold mt-4 ${
+                  isDarkMode ? "text-gray-100" : "text-gray-800"
+                }`}
+              >
                 No matching opportunities
               </Text>
-              <Text className="text-gray-500 text-center mt-2 mb-4 px-8">
+              <Text
+                className={`text-center mt-2 mb-4 px-8 ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
                 We couldn't find any opportunities matching your criteria.
               </Text>
             </View>
@@ -704,22 +915,44 @@ const GetReferral = () => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16 }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[theme.primary]}
+              tintColor={theme.primary}
+              progressBackgroundColor={isDarkMode ? "#1F2937" : "#FFFFFF"}
+            />
           }
           ListHeaderComponent={
             <View className="mb-4">
-              <Text className="text-gray-700 text-sm font-medium">
+              <Text
+                className={`text-sm font-medium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
                 {MY_REFERRALS.length} active referrals
               </Text>
             </View>
           }
           ListEmptyComponent={
             <View className="flex-1 items-center justify-center py-16">
-              <Ionicons name="people-outline" size={48} color="#9CA3AF" />
-              <Text className="text-gray-800 text-lg font-bold mt-4">
+              <Ionicons
+                name="people-outline"
+                size={48}
+                color={isDarkMode ? "#6B7280" : "#9CA3AF"}
+              />
+              <Text
+                className={`text-lg font-bold mt-4 ${
+                  isDarkMode ? "text-gray-100" : "text-gray-800"
+                }`}
+              >
                 No active referrals
               </Text>
-              <Text className="text-gray-500 text-center mt-2 mb-4 px-8">
+              <Text
+                className={`text-center mt-2 mb-4 px-8 ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
                 You haven't referred any candidates yet. Start by exploring
                 available opportunities.
               </Text>

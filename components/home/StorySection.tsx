@@ -782,9 +782,9 @@ const StorySection = () => {
   // The main component render
   return (
     <View
-      className="pt-2 pb-2 shadow-sm mb-1"
+      className="pt-2 pb-2 shadow-sm mb-2"
       style={{
-        backgroundColor: themeColors.background,
+        backgroundColor: themeColors.cardBackground,
       }}
     >
       <ScrollView

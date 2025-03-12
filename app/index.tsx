@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, useColorScheme } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
@@ -13,6 +13,18 @@ import Animated, {
 
 export default function SplashScreen() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  // Theme colors
+  const colors = {
+    background: isDark ? "#121212" : "white",
+    primary: "#2563EB", // blue-600
+    primaryLight: isDark ? "#1E3A8A" : "#DBEAFE", // dark: blue-900, light: blue-50
+    text: isDark ? "white" : "#1F2937", // dark: white, light: gray-800
+    textSecondary: isDark ? "#9CA3AF" : "#6B7280", // dark: gray-400, light: gray-500
+    progressBg: isDark ? "#374151" : "#E5E7EB", // dark: gray-700, light: gray-200
+  };
 
   // Animation values - simplified
   const opacity = useSharedValue(0);
@@ -60,6 +72,7 @@ export default function SplashScreen() {
   // Animated styles - simplified
   const containerStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
+    backgroundColor: colors.background,
   }));
 
   const logoStyle = useAnimatedStyle(() => ({
@@ -72,27 +85,41 @@ export default function SplashScreen() {
 
   return (
     <Animated.View
-      className="flex-1 bg-white items-center justify-between py-10"
+      className="flex-1 items-center justify-between py-10"
       style={containerStyle}
     >
       <View className="flex-1 items-center justify-center pt-16">
         <Animated.View className="relative" style={logoStyle}>
-          <View className="w-20 h-20 bg-blue-600 rounded-xl items-center justify-center shadow-lg">
+          <View
+            style={{ backgroundColor: colors.primary }}
+            className="w-20 h-20 rounded-xl items-center justify-center shadow-lg"
+          >
             <Text className="text-4xl font-bold text-white">A</Text>
           </View>
         </Animated.View>
 
-        <Text className="mt-6 text-4xl font-bold text-blue-600">AlumiQ</Text>
+        <Text
+          style={{ color: colors.primary }}
+          className="mt-6 text-4xl font-bold"
+        >
+          AlumiQ
+        </Text>
 
-        <Text className="mt-3 text-gray-600 text-center px-8 max-w-xs">
+        <Text
+          style={{ color: colors.textSecondary }}
+          className="mt-3 text-center px-8 max-w-xs"
+        >
           Connect with your university network
         </Text>
 
         {/* Loading Progress - Simplified */}
-        <View className="mt-12 w-64 h-1 bg-gray-200 rounded-full overflow-hidden">
+        <View
+          style={{ backgroundColor: colors.progressBg }}
+          className="mt-12 w-64 h-1 rounded-full overflow-hidden"
+        >
           <Animated.View
-            className="h-full bg-blue-600 rounded-full"
-            style={progressBarStyle}
+            style={[progressBarStyle, { backgroundColor: colors.primary }]}
+            className="h-full rounded-full"
           />
         </View>
       </View>
@@ -100,21 +127,30 @@ export default function SplashScreen() {
       {/* Footer Section - Simplified */}
       <View className="w-full pb-10">
         <View className="items-center">
-          <Text className="text-gray-500 mb-5">
+          <Text style={{ color: colors.textSecondary }} className="mb-5">
             Where alumni connections thrive
           </Text>
 
-          <View className="flex-row space-x-4">
-            <Pressable className="w-10 h-10 rounded-full bg-blue-50 items-center justify-center">
-              <Ionicons name="school" size={20} color="#2563EB" />
+          <View className="flex-row space-x-4 gap-x-4">
+            <Pressable
+              style={{ backgroundColor: colors.primaryLight }}
+              className="w-10 h-10 rounded-full items-center justify-center"
+            >
+              <Ionicons name="school" size={20} color={colors.primary} />
             </Pressable>
 
-            <Pressable className="w-10 h-10 rounded-full bg-blue-50 items-center justify-center">
-              <Ionicons name="briefcase" size={20} color="#2563EB" />
+            <Pressable
+              style={{ backgroundColor: colors.primaryLight }}
+              className="w-10 h-10 rounded-full items-center justify-center"
+            >
+              <Ionicons name="briefcase" size={20} color={colors.primary} />
             </Pressable>
 
-            <Pressable className="w-10 h-10 rounded-full bg-blue-50 items-center justify-center">
-              <Ionicons name="people" size={20} color="#2563EB" />
+            <Pressable
+              style={{ backgroundColor: colors.primaryLight }}
+              className="w-10 h-10 rounded-full items-center justify-center"
+            >
+              <Ionicons name="people" size={20} color={colors.primary} />
             </Pressable>
           </View>
         </View>

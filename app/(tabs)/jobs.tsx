@@ -15,6 +15,9 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/constants/theme";
+import Header from "@/components/home/Header";
 
 const { width } = Dimensions.get("window");
 
@@ -162,6 +165,10 @@ const jobListings: JobListing[] = [
 ];
 
 export default function JobsScreen() {
+  // Theme
+  const { theme: themeType } = useTheme();
+  const isDarkMode = themeType === "dark";
+  const theme = isDarkMode ? darkTheme : lightTheme;
   // State
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -276,7 +283,11 @@ export default function JobsScreen() {
           },
         ],
       }}
-      className="mt-4 bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+      className={`mt-4 ${
+        isDarkMode ? "bg-gray-800" : "bg-white"
+      } rounded-xl shadow-sm overflow-hidden border ${
+        isDarkMode ? "border-gray-700" : "border-gray-100"
+      }`}
     >
       {job.isFeatured && (
         <LinearGradient
@@ -291,7 +302,11 @@ export default function JobsScreen() {
 
       <View className="p-4">
         <View className="flex-row">
-          <View className="w-14 h-14 rounded-lg overflow-hidden bg-blue-50 items-center justify-center">
+          <View
+            className={`w-14 h-14 rounded-lg overflow-hidden ${
+              isDarkMode ? "bg-gray-700" : "bg-blue-50"
+            } items-center justify-center`}
+          >
             {job.logo ? (
               <Image
                 source={{ uri: job.logo }}
@@ -313,35 +328,67 @@ export default function JobsScreen() {
           <View className="ml-3 flex-1">
             <View className="flex-row items-center justify-between">
               <View className="flex-1">
-                <Text className="font-bold text-gray-800 text-lg">
+                <Text
+                  className={`font-bold ${
+                    isDarkMode ? "text-gray-100" : "text-gray-800"
+                  } text-lg`}
+                >
                   {job.title}
                 </Text>
-                <Text className="text-gray-600">{job.company}</Text>
+                <Text
+                  className={`${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  {job.company}
+                </Text>
               </View>
               <TouchableOpacity
                 onPress={() => toggleSaveJob(job.id)}
-                className="w-9 h-9 items-center justify-center rounded-full bg-gray-50"
+                className={`w-9 h-9 items-center justify-center rounded-full ${
+                  isDarkMode ? "bg-gray-700" : "bg-gray-50"
+                }`}
               >
                 <Ionicons
                   name={job.isSaved ? "bookmark" : "bookmark-outline"}
                   size={20}
-                  color={job.isSaved ? "#0077B5" : "#666"}
+                  color={
+                    job.isSaved ? "#0077B5" : isDarkMode ? "#9CA3AF" : "#666"
+                  }
                 />
               </TouchableOpacity>
             </View>
 
             <View className="flex-row items-center mt-1 flex-wrap">
               <View className="flex-row items-center mr-3">
-                <Ionicons name="location-outline" size={14} color="#666" />
-                <Text className="text-gray-500 text-xs ml-1">
+                <Ionicons
+                  name="location-outline"
+                  size={14}
+                  color={isDarkMode ? "#9CA3AF" : "#666"}
+                />
+                <Text
+                  className={`${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  } text-xs ml-1`}
+                >
                   {job.location}
                 </Text>
               </View>
 
               {job.isRemote && (
                 <View className="flex-row items-center mr-3">
-                  <Ionicons name="globe-outline" size={14} color="#666" />
-                  <Text className="text-gray-500 text-xs ml-1">Remote</Text>
+                  <Ionicons
+                    name="globe-outline"
+                    size={14}
+                    color={isDarkMode ? "#9CA3AF" : "#666"}
+                  />
+                  <Text
+                    className={`${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    } text-xs ml-1`}
+                  >
+                    Remote
+                  </Text>
                 </View>
               )}
 
@@ -349,11 +396,17 @@ export default function JobsScreen() {
                 <Ionicons
                   name="time-outline"
                   size={14}
-                  color={job.isRecent ? "green" : "#666"}
+                  color={
+                    job.isRecent ? "green" : isDarkMode ? "#9CA3AF" : "#666"
+                  }
                 />
                 <Text
                   className={`text-xs ml-1 ${
-                    job.isRecent ? "text-green-600" : "text-gray-500"
+                    job.isRecent
+                      ? "text-green-600"
+                      : isDarkMode
+                      ? "text-gray-400"
+                      : "text-gray-500"
                   }`}
                 >
                   Posted {job.posted} ago
@@ -364,15 +417,37 @@ export default function JobsScreen() {
         </View>
 
         <View className="mt-3 flex-row items-center">
-          <View className="bg-blue-50 px-2 py-1 rounded-md">
-            <Text className="text-blue-700 text-xs font-medium">
+          <View
+            className={`${
+              isDarkMode ? "bg-blue-900/30" : "bg-blue-50"
+            } px-2 py-1 rounded-md`}
+          >
+            <Text
+              className={`${
+                isDarkMode ? "text-blue-300" : "text-blue-700"
+              } text-xs font-medium`}
+            >
               {job.salary}
             </Text>
           </View>
           <View className="ml-auto flex-row items-center">
-            <Text className="text-gray-500 text-xs mr-1">Match</Text>
-            <View className="bg-green-100 px-2 py-1 rounded-md">
-              <Text className="text-green-700 text-xs font-bold">
+            <Text
+              className={`${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              } text-xs mr-1`}
+            >
+              Match
+            </Text>
+            <View
+              className={`${
+                isDarkMode ? "bg-green-900/30" : "bg-green-100"
+              } px-2 py-1 rounded-md`}
+            >
+              <Text
+                className={`${
+                  isDarkMode ? "text-green-300" : "text-green-700"
+                } text-xs font-bold`}
+              >
                 {job.matchPercentage}%
               </Text>
             </View>
@@ -382,12 +457,26 @@ export default function JobsScreen() {
         <View className="mt-3">
           {job.requirements.slice(0, 2).map((req, index) => (
             <View key={index} className="flex-row items-center mb-1">
-              <View className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2" />
-              <Text className="text-gray-600 text-sm">{req}</Text>
+              <View
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isDarkMode ? "bg-gray-500" : "bg-gray-400"
+                } mr-2`}
+              />
+              <Text
+                className={`${
+                  isDarkMode ? "text-gray-300" : "text-gray-600"
+                } text-sm`}
+              >
+                {req}
+              </Text>
             </View>
           ))}
           {job.requirements.length > 2 && (
-            <Text className="text-gray-500 text-xs mt-1">
+            <Text
+              className={`${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              } text-xs mt-1`}
+            >
               +{job.requirements.length - 2} more requirements
             </Text>
           )}
@@ -397,14 +486,30 @@ export default function JobsScreen() {
           {job.skills.slice(0, 3).map((skill, index) => (
             <View
               key={index}
-              className="bg-gray-100 rounded-full px-2 py-1 mr-2 mb-2"
+              className={`${
+                isDarkMode ? "bg-gray-700" : "bg-gray-100"
+              } rounded-full px-2 py-1 mr-2 mb-2`}
             >
-              <Text className="text-gray-700 text-xs">{skill}</Text>
+              <Text
+                className={`${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                } text-xs`}
+              >
+                {skill}
+              </Text>
             </View>
           ))}
           {job.skills.length > 3 && (
-            <View className="bg-gray-100 rounded-full px-2 py-1 mr-2 mb-2">
-              <Text className="text-gray-700 text-xs">
+            <View
+              className={`${
+                isDarkMode ? "bg-gray-700" : "bg-gray-100"
+              } rounded-full px-2 py-1 mr-2 mb-2`}
+            >
+              <Text
+                className={`${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                } text-xs`}
+              >
                 +{job.skills.length - 3}
               </Text>
             </View>
@@ -427,8 +532,18 @@ export default function JobsScreen() {
               Apply Now
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity className="border border-gray-300 py-2.5 px-5 rounded-lg">
-            <Text className="text-gray-700 font-medium">Details</Text>
+          <TouchableOpacity
+            className={`border ${
+              isDarkMode ? "border-gray-600" : "border-gray-300"
+            } py-2.5 px-5 rounded-lg`}
+          >
+            <Text
+              className={`${
+                isDarkMode ? "text-gray-300" : "text-gray-700"
+              } font-medium`}
+            >
+              Details
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -436,121 +551,10 @@ export default function JobsScreen() {
   );
 
   return (
-    <View className="flex-1 mt-8 bg-gray-50">
+    <View className={`flex-1 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}>
       {/* Enhanced Header */}
-      <Animated.View
-        style={{
-          elevation: headerElevation,
-          opacity: headerOpacity,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 3,
-          zIndex: 10,
-        }}
-        className="bg-white px-4 py-2 border-b border-gray-200"
-      >
-        {/* Header Row */}
-        <View className="flex-row items-center justify-between">
-          {/* Profile Image */}
-          <TouchableOpacity className="relative">
-            <Image
-              source={{
-                uri: "https://randomuser.me/api/portraits/women/1.jpg",
-              }}
-              className="w-11 h-11 rounded-full border-2 border-blue-500"
-            />
-            <View className="absolute bottom-0 right-0 bg-green-500 w-3 h-3 rounded-full border border-white"></View>
-          </TouchableOpacity>
 
-          {/* Search Bar */}
-          <View className="flex-1 mx-3">
-            <View className="flex-row items-center bg-gray-100 rounded-full px-3">
-              <Ionicons name="search" size={20} color="#6b7280" />
-              <TextInput
-                placeholder="Search jobs, companies, skills..."
-                className="flex-1 ml-2 text-gray-800 text-sm"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onFocus={() => handleSearchFocus(true)}
-                onBlur={() => handleSearchFocus(false)}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery("")}>
-                  <Ionicons name="close-circle" size={18} color="#6b7280" />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-
-          {/* Filter Button */}
-          {!searchFocused && (
-            <TouchableOpacity
-              className="w-10 h-10 items-center justify-center bg-blue-50 rounded-full"
-              onPress={toggleFilters}
-            >
-              <Ionicons name="options-outline" size={22} color="#0077B5" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Filters Section */}
-        <Animated.View
-          style={{
-            height: filtersHeight,
-            opacity: filtersHeight.interpolate({
-              inputRange: [0, 180],
-              outputRange: [0, 1],
-            }),
-          }}
-          className="overflow-hidden"
-        >
-          <View className="mt-4">
-            <Text className="font-medium text-gray-800 mb-2">Filter by</Text>
-            <View className="flex-row flex-wrap">
-              {[
-                { icon: "location-outline", label: "Location" },
-                { icon: "cash-outline", label: "Salary" },
-                { icon: "time-outline", label: "Date Posted" },
-                { icon: "briefcase-outline", label: "Job Type" },
-                { icon: "school-outline", label: "Experience" },
-              ].map(({ icon, label }, index) => (
-                <TouchableOpacity
-                  key={index}
-                  className="bg-blue-50 border border-blue-200 rounded-full px-3 py-1.5 mr-2 mb-2 flex-row items-center"
-                  onPress={() => {}}
-                >
-                  <Ionicons name={icon} size={14} color="#0077B5" />
-                  <Text className="text-blue-600 text-sm ml-1">{label}</Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={14}
-                    color="#0077B5"
-                    style={{ marginLeft: 4 }}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Apply & Reset Buttons */}
-            <View className="flex-row mt-2">
-              <TouchableOpacity
-                className="bg-blue-600 rounded-lg py-2 px-4 flex-row items-center"
-                onPress={toggleFilters}
-              >
-                <Text className="text-white font-medium">Apply Filters</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="ml-3 border border-gray-300 rounded-lg py-2 px-4"
-                onPress={toggleFilters}
-              >
-                <Text className="text-gray-700">Reset</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Animated.View>
-      </Animated.View>
+      <Header scrollY={scrollY} />
 
       <Animated.ScrollView
         ref={scrollViewRef}
@@ -571,46 +575,126 @@ export default function JobsScreen() {
         }
       >
         {/* My Jobs Section */}
-        <View className="bg-white p-4 mt-2 rounded-xl mx-4 shadow-sm border border-gray-100">
-          <Text className="font-bold text-lg text-gray-800">My Jobs</Text>
+        <View
+          className={`${
+            isDarkMode ? "bg-gray-800" : "bg-white"
+          } p-4 mt-2 rounded-xl mx-4 shadow-sm border ${
+            isDarkMode ? "border-gray-700" : "border-gray-100"
+          }`}
+        >
+          <Text
+            className={`font-bold text-lg ${
+              isDarkMode ? "text-gray-100" : "text-gray-800"
+            }`}
+          >
+            My Jobs
+          </Text>
           <View className="flex-row mt-3 justify-between">
             <TouchableOpacity className="items-center">
-              <View className="w-12 h-12 rounded-full bg-blue-50 items-center justify-center">
+              <View
+                className={`w-12 h-12 rounded-full ${
+                  isDarkMode ? "bg-blue-900/30" : "bg-blue-50"
+                } items-center justify-center`}
+              >
                 <Ionicons name="bookmark" size={22} color="#0077B5" />
               </View>
-              <Text className="text-sm mt-1 font-medium">Saved</Text>
-              <Text className="text-xs text-gray-500">12</Text>
+              <Text
+                className={`text-sm mt-1 font-medium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-800"
+                }`}
+              >
+                Saved
+              </Text>
+              <Text
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                12
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="items-center">
-              <View className="w-12 h-12 rounded-full bg-green-50 items-center justify-center">
+              <View
+                className={`w-12 h-12 rounded-full ${
+                  isDarkMode ? "bg-green-900/30" : "bg-green-50"
+                } items-center justify-center`}
+              >
                 <Ionicons name="checkmark-circle" size={22} color="#10B981" />
               </View>
-              <Text className="text-sm mt-1 font-medium">Applied</Text>
-              <Text className="text-xs text-gray-500">5</Text>
+              <Text
+                className={`text-sm mt-1 font-medium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-800"
+                }`}
+              >
+                Applied
+              </Text>
+              <Text
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                5
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="items-center">
-              <View className="w-12 h-12 rounded-full bg-yellow-50 items-center justify-center">
+              <View
+                className={`w-12 h-12 rounded-full ${
+                  isDarkMode ? "bg-yellow-900/30" : "bg-yellow-50"
+                } items-center justify-center`}
+              >
                 <Ionicons name="notifications" size={22} color="#F59E0B" />
               </View>
-              <Text className="text-sm mt-1 font-medium">Alerts</Text>
-              <Text className="text-xs text-gray-500">3</Text>
+              <Text
+                className={`text-sm mt-1 font-medium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-800"
+                }`}
+              >
+                Alerts
+              </Text>
+              <Text
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                3
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="items-center">
-              <View className="w-12 h-12 rounded-full bg-purple-50 items-center justify-center">
+              <View
+                className={`w-12 h-12 rounded-full ${
+                  isDarkMode ? "bg-purple-900/30" : "bg-purple-50"
+                } items-center justify-center`}
+              >
                 <Ionicons name="calendar" size={22} color="#8B5CF6" />
               </View>
-              <Text className="text-sm mt-1 font-medium">Interviews</Text>
-              <Text className="text-xs text-gray-500">2</Text>
+              <Text
+                className={`text-sm mt-1 font-medium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-800"
+                }`}
+              >
+                Interviews
+              </Text>
+              <Text
+                className={`text-xs ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                2
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Job Categories */}
         <View className="mt-4 px-4">
-          <Text className="font-bold text-lg text-gray-800 mb-3">
+          <Text
+            className={`font-bold text-lg ${
+              isDarkMode ? "text-gray-100" : "text-gray-800"
+            } mb-3`}
+          >
             Browse by Category
           </Text>
           <ScrollView
@@ -623,7 +707,11 @@ export default function JobsScreen() {
                 key={category.id}
                 className={`mr-3 rounded-xl overflow-hidden border ${
                   selectedCategory === category.id
-                    ? "border-blue-400 bg-blue-50"
+                    ? isDarkMode
+                      ? "border-blue-500 bg-blue-900/30"
+                      : "border-blue-400 bg-blue-50"
+                    : isDarkMode
+                    ? "border-gray-700 bg-gray-800"
                     : "border-gray-200 bg-white"
                 }`}
                 style={{ width: width * 0.35 }}
@@ -637,7 +725,11 @@ export default function JobsScreen() {
                   <View
                     className={`w-10 h-10 rounded-lg items-center justify-center mb-2 ${
                       selectedCategory === category.id
-                        ? "bg-blue-100"
+                        ? isDarkMode
+                          ? "bg-blue-800/50"
+                          : "bg-blue-100"
+                        : isDarkMode
+                        ? "bg-gray-700"
                         : "bg-gray-100"
                     }`}
                   >
@@ -652,14 +744,40 @@ export default function JobsScreen() {
                       }
                       size={20}
                       color={
-                        selectedCategory === category.id ? "#0077B5" : "#666"
+                        selectedCategory === category.id
+                          ? isDarkMode
+                            ? "#60A5FA"
+                            : "#0077B5"
+                          : isDarkMode
+                          ? "#9CA3AF"
+                          : "#666"
                       }
                     />
                   </View>
-                  <Text className="font-medium text-gray-800">
+                  <Text
+                    className={`font-medium ${
+                      selectedCategory === category.id
+                        ? isDarkMode
+                          ? "text-blue-300"
+                          : "text-blue-700"
+                        : isDarkMode
+                        ? "text-gray-200"
+                        : "text-gray-800"
+                    }`}
+                  >
                     {category.name}
                   </Text>
-                  <Text className="text-xs text-gray-500">
+                  <Text
+                    className={`text-xs ${
+                      selectedCategory === category.id
+                        ? isDarkMode
+                          ? "text-blue-400"
+                          : "text-blue-500"
+                        : isDarkMode
+                        ? "text-gray-400"
+                        : "text-gray-500"
+                    }`}
+                  >
                     {category.count} jobs
                   </Text>
                 </View>
@@ -671,15 +789,33 @@ export default function JobsScreen() {
         {/* Recommended Jobs */}
         <View className="mt-4 px-4 pb-6">
           <View className="flex-row items-center justify-between">
-            <Text className="font-bold text-lg text-gray-800">
+            <Text
+              className={`font-bold text-lg ${
+                isDarkMode ? "text-gray-100" : "text-gray-800"
+              }`}
+            >
               Recommended for you
             </Text>
             <TouchableOpacity className="flex-row items-center">
-              <Text className="text-blue-600 font-medium mr-1">See All</Text>
-              <Ionicons name="chevron-forward" size={16} color="#0077B5" />
+              <Text
+                className={`${
+                  isDarkMode ? "text-blue-400" : "text-blue-600"
+                } font-medium mr-1`}
+              >
+                See All
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={isDarkMode ? "#60A5FA" : "#0077B5"}
+              />
             </TouchableOpacity>
           </View>
-          <Text className="text-gray-500 text-sm">
+          <Text
+            className={`${
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            } text-sm`}
+          >
             Based on your profile and search history
           </Text>
 
@@ -687,15 +823,33 @@ export default function JobsScreen() {
           {isLoading ? (
             <View className="py-8 items-center">
               <ActivityIndicator size="large" color="#0077B5" />
-              <Text className="text-gray-500 mt-2">Loading jobs...</Text>
+              <Text
+                className={`${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                } mt-2`}
+              >
+                Loading jobs...
+              </Text>
             </View>
           ) : jobs.length === 0 ? (
             <View className="py-8 items-center">
-              <Ionicons name="search" size={48} color="#d1d5db" />
-              <Text className="text-gray-500 mt-2 text-center">
+              <Ionicons
+                name="search"
+                size={48}
+                color={isDarkMode ? "#4B5563" : "#d1d5db"}
+              />
+              <Text
+                className={`${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                } mt-2 text-center`}
+              >
                 No jobs found
               </Text>
-              <Text className="text-gray-400 text-center">
+              <Text
+                className={`${
+                  isDarkMode ? "text-gray-500" : "text-gray-400"
+                } text-center`}
+              >
                 Try adjusting your search criteria
               </Text>
               <TouchableOpacity

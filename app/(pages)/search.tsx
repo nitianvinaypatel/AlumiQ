@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/contexts/ThemeContext";
+import { lightTheme, darkTheme } from "@/contexts/ThemeContext";
 
 // Define types for search results
 interface SearchResult {
@@ -101,6 +103,11 @@ export default function SearchScreen() {
   ]);
   const router = useRouter();
 
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const themeColors = isDarkMode ? darkTheme : lightTheme;
+
   // Focus the search input when the screen loads
   useEffect(() => {
     // Simulate search results
@@ -142,7 +149,9 @@ export default function SearchScreen() {
 
   const renderSearchResult = ({ item }: { item: SearchResult }) => (
     <TouchableOpacity
-      className="flex-row items-center bg-white p-3 rounded-lg mb-2 shadow-sm"
+      className={`flex-row items-center ${
+        isDarkMode ? "bg-gray-800" : "bg-white"
+      } p-3 rounded-lg mb-2 shadow-sm`}
       activeOpacity={0.7}
       onPress={() => {
         // Navigate based on result type
@@ -170,25 +179,45 @@ export default function SearchScreen() {
       )}
 
       {item.type === "post" && item.image && (
-        <View className="w-12 h-12 rounded-lg mr-3 bg-gray-200 justify-center items-center overflow-hidden">
+        <View
+          className={`w-12 h-12 rounded-lg mr-3 ${
+            isDarkMode ? "bg-gray-700" : "bg-gray-200"
+          } justify-center items-center overflow-hidden`}
+        >
           <Image source={{ uri: item.image }} className="w-full h-full" />
         </View>
       )}
 
       {(item.type === "job" || item.type === "event") && (
-        <View className="w-12 h-12 rounded-lg mr-3 bg-blue-100 justify-center items-center">
+        <View
+          className={`w-12 h-12 rounded-lg mr-3 ${
+            isDarkMode ? "bg-blue-900" : "bg-blue-100"
+          } justify-center items-center`}
+        >
           <Ionicons
             name={item.type === "job" ? "briefcase" : "calendar"}
             size={24}
-            color="#0077B5"
+            color={themeColors.primary}
           />
         </View>
       )}
 
       <View className="flex-1">
-        <Text className="font-semibold text-gray-800">{item.title}</Text>
+        <Text
+          className={`font-semibold ${
+            isDarkMode ? "text-gray-100" : "text-gray-800"
+          }`}
+        >
+          {item.title}
+        </Text>
         {item.subtitle && (
-          <Text className="text-sm text-gray-600 mt-1">{item.subtitle}</Text>
+          <Text
+            className={`text-sm ${
+              isDarkMode ? "text-gray-300" : "text-gray-600"
+            } mt-1`}
+          >
+            {item.subtitle}
+          </Text>
         )}
 
         {item.tags && item.tags.length > 0 && (
@@ -196,56 +225,98 @@ export default function SearchScreen() {
             {item.tags.map((tag, index) => (
               <View
                 key={index}
-                className="bg-gray-100 rounded-full px-2 py-1 mr-1 mb-1"
+                className={`${
+                  isDarkMode ? "bg-gray-700" : "bg-gray-100"
+                } rounded-full px-2 py-1 mr-1 mb-1`}
               >
-                <Text className="text-xs text-gray-700">{tag}</Text>
+                <Text
+                  className={`text-xs ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  {tag}
+                </Text>
               </View>
             ))}
           </View>
         )}
       </View>
 
-      <Ionicons name="chevron-forward" size={20} color="#999" />
+      <Ionicons
+        name="chevron-forward"
+        size={20}
+        color={isDarkMode ? "#ccc" : "#999"}
+      />
     </TouchableOpacity>
   );
 
   const renderRecentSearch = ({ item }: { item: string }) => (
     <TouchableOpacity
-      className="flex-row items-center py-3 border-b border-gray-100"
+      className={`flex-row items-center py-3 border-b ${
+        isDarkMode ? "border-gray-700" : "border-gray-100"
+      }`}
       onPress={() => handleSearch(item)}
     >
-      <Ionicons name="time-outline" size={20} color="#999" className="mr-3" />
-      <Text className="flex-1 text-gray-700">{item}</Text>
+      <Ionicons
+        name="time-outline"
+        size={20}
+        color={isDarkMode ? "#ccc" : "#999"}
+        className="mr-3"
+      />
+      <Text
+        className={`flex-1 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+      >
+        {item}
+      </Text>
       <TouchableOpacity
         onPress={() =>
           setRecentSearches((prev) => prev.filter((search) => search !== item))
         }
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
-        <Ionicons name="close" size={18} color="#999" />
+        <Ionicons name="close" size={18} color={isDarkMode ? "#ccc" : "#999"} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className={`flex-1 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}>
       <Stack.Screen
         options={{
           headerShown: false,
         }}
       />
 
-      <View className="bg-white pt-12 pb-2 px-4 shadow-sm">
+      <View
+        className={`${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        } pt-12 pb-2 px-4 shadow-sm`}
+      >
         <View className="flex-row items-center mb-3">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
-            <Ionicons name="arrow-back" size={24} color="#333" />
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color={isDarkMode ? "#fff" : "#333"}
+            />
           </TouchableOpacity>
 
-          <View className="flex-1 flex-row items-center bg-gray-100 rounded-full px-3 py-1">
-            <Ionicons name="search" size={20} color="#666" />
+          <View
+            className={`flex-1 flex-row items-center ${
+              isDarkMode ? "bg-gray-700" : "bg-gray-100"
+            } rounded-full px-3 py-1`}
+          >
+            <Ionicons
+              name="search"
+              size={20}
+              color={isDarkMode ? "#ccc" : "#666"}
+            />
             <TextInput
-              className="flex-1 ml-2 text-base"
+              className={`flex-1 ml-2 text-base ${
+                isDarkMode ? "text-white" : "text-black"
+              }`}
               placeholder="Search alumni, posts, jobs..."
+              placeholderTextColor={isDarkMode ? "#999" : "#999"}
               value={searchQuery}
               onChangeText={handleSearch}
               autoFocus
@@ -253,7 +324,11 @@ export default function SearchScreen() {
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={clearSearch}>
-                <Ionicons name="close-circle" size={20} color="#999" />
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={isDarkMode ? "#ccc" : "#999"}
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -267,13 +342,21 @@ export default function SearchScreen() {
           renderItem={({ item }) => (
             <TouchableOpacity
               className={`px-4 py-2 rounded-full mr-2 ${
-                activeFilter === item.id ? "bg-blue-500" : "bg-gray-200"
+                activeFilter === item.id
+                  ? "bg-blue-500"
+                  : isDarkMode
+                  ? "bg-gray-700"
+                  : "bg-gray-200"
               }`}
               onPress={() => setActiveFilter(item.id)}
             >
               <Text
                 className={`${
-                  activeFilter === item.id ? "text-white" : "text-gray-700"
+                  activeFilter === item.id
+                    ? "text-white"
+                    : isDarkMode
+                    ? "text-gray-300"
+                    : "text-gray-700"
                 } font-medium`}
               >
                 {item.label}
@@ -286,12 +369,20 @@ export default function SearchScreen() {
 
       {isLoading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0077B5" />
-          <Text className="mt-2 text-gray-600">Searching...</Text>
+          <ActivityIndicator size="large" color={themeColors.primary} />
+          <Text
+            className={`mt-2 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+          >
+            Searching...
+          </Text>
         </View>
       ) : searchQuery.trim() === "" ? (
         <View className="flex-1 px-4 py-2">
-          <Text className="text-lg font-semibold text-gray-800 mb-2">
+          <Text
+            className={`text-lg font-semibold ${
+              isDarkMode ? "text-gray-200" : "text-gray-800"
+            } mb-2`}
+          >
             Recent Searches
           </Text>
           <FlatList
@@ -300,13 +391,21 @@ export default function SearchScreen() {
             renderItem={renderRecentSearch}
             ListEmptyComponent={
               <View className="flex-1 justify-center items-center py-8">
-                <Text className="text-gray-500">No recent searches</Text>
+                <Text
+                  className={isDarkMode ? "text-gray-400" : "text-gray-500"}
+                >
+                  No recent searches
+                </Text>
               </View>
             }
           />
 
           <View className="mt-6">
-            <Text className="text-lg font-semibold text-gray-800 mb-2">
+            <Text
+              className={`text-lg font-semibold ${
+                isDarkMode ? "text-gray-200" : "text-gray-800"
+              } mb-2`}
+            >
               Suggested Searches
             </Text>
             <View className="flex-row flex-wrap">
@@ -319,10 +418,16 @@ export default function SearchScreen() {
               ].map((item, index) => (
                 <TouchableOpacity
                   key={index}
-                  className="bg-gray-200 rounded-full px-3 py-2 mr-2 mb-2"
+                  className={`${
+                    isDarkMode ? "bg-gray-700" : "bg-gray-200"
+                  } rounded-full px-3 py-2 mr-2 mb-2`}
                   onPress={() => handleSearch(item)}
                 >
-                  <Text className="text-gray-700">{item}</Text>
+                  <Text
+                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                  >
+                    {item}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -337,11 +442,23 @@ export default function SearchScreen() {
         />
       ) : (
         <View className="flex-1 justify-center items-center p-4">
-          <Ionicons name="search-outline" size={60} color="#ccc" />
-          <Text className="mt-4 text-lg text-gray-500 text-center">
+          <Ionicons
+            name="search-outline"
+            size={60}
+            color={isDarkMode ? "#555" : "#ccc"}
+          />
+          <Text
+            className={`mt-4 text-lg ${
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            } text-center`}
+          >
             No results found for "{searchQuery}"
           </Text>
-          <Text className="mt-2 text-gray-500 text-center">
+          <Text
+            className={`mt-2 ${
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            } text-center`}
+          >
             Try different keywords or browse suggested searches
           </Text>
         </View>

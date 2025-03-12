@@ -1,16 +1,25 @@
 import React from "react";
 import { Stack } from "expo-router";
+import { useTheme, lightTheme, darkTheme } from "@/contexts/ThemeContext";
 
 export default function PagesLayout() {
+  // Get current theme
+  const { theme: themeType } = useTheme();
+  const isDarkMode = themeType === "dark";
+  const theme = isDarkMode ? darkTheme : lightTheme;
+
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: "#0077B5",
+          backgroundColor: theme.primary,
         },
         headerTintColor: "#fff",
         headerTitleStyle: {
           fontWeight: "bold",
+        },
+        contentStyle: {
+          backgroundColor: theme.background,
         },
       }}
     >

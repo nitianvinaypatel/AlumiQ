@@ -15,20 +15,14 @@ const UniversityHighlightsSection = () => {
 
   return (
     <View
-      className={`pt-2 mb-3 overflow-hidden ${
+      className={`pt-2 mb-2 pb-2 overflow-hidden rounded-sm ${
         theme === "dark" ? "bg-gray-800" : "bg-white"
       }`}
     >
       <View className="px-4 mb-2 flex-row items-center justify-between">
-        <View className="flex-row items-center">
-          <LinearGradient
-            colors={colors.profileGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="w-8 h-8 rounded-lg items-center justify-center mr-2"
-          >
-            <Ionicons name="school" size={18} color="white" />
-          </LinearGradient>
+        <View className="flex-row items-center gap-3">
+          <Ionicons name="school" size={18} color="#2563eb" />
+
           <Text
             className={`font-bold text-lg ${
               theme === "dark" ? "text-gray-100" : "text-gray-800"
@@ -49,7 +43,7 @@ const UniversityHighlightsSection = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingLeft: 16, paddingRight: 8 }}
+        contentContainerStyle={{ paddingLeft: 8, paddingRight: 8 }}
         className="pb-1"
       >
         {UniversityHighlights.map((item) => (

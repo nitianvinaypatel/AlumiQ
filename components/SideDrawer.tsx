@@ -214,9 +214,12 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
   const menuItemsOpacity = useRef(new Animated.Value(0)).current;
   const profileSectionY = useRef(new Animated.Value(20)).current;
   const scale = useRef(new Animated.Value(0.95)).current;
+  const togglePosition = useRef(
+    new Animated.Value(isDarkMode ? 22 : 0)
+  ).current;
 
   // State
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(themeType === "dark");
 
   // Scroll view ref
   const scrollViewRef = useRef<ScrollView>(null);
@@ -304,21 +307,19 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
     saveDarkModePreference();
   }, [isVisible, darkMode]);
 
-  // Load dark mode preference
+  // Update darkMode state when theme changes
   useEffect(() => {
-    const loadDarkModePreference = async () => {
-      try {
-        const value = await AsyncStorage.getItem("@darkMode");
-        if (value !== null) {
-          setDarkMode(value === "true");
-        }
-      } catch (e) {
-        console.log("Error loading dark mode preference");
-      }
-    };
+    setDarkMode(themeType === "dark");
+  }, [themeType]);
 
-    loadDarkModePreference();
-  }, []);
+  // Update toggle position when dark mode changes
+  useEffect(() => {
+    Animated.timing(togglePosition, {
+      toValue: isDarkMode ? 22 : 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [isDarkMode]);
 
   const handleNavigate = (route: string) => {
     // Haptic feedback
@@ -334,7 +335,11 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
   const toggleDarkMode = () => {
     // Haptic feedback
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setDarkMode(!darkMode);
+
+    // Toggle theme in context first
+    toggleTheme();
+
+    // Local state will be updated via the useEffect that watches themeType
   };
 
   const handleShareProfile = async () => {
@@ -372,7 +377,6 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
   const handleMenuItemPress = (item: SecondaryMenuItem) => {
     if ("toggle" in item && item.toggle) {
       toggleDarkMode();
-      toggleTheme();
     } else if ("route" in item && item.route) {
       handleNavigate(item.route);
     } else if ("onPress" in item && item.onPress) {
@@ -744,7 +748,9 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                         height: 24,
                         borderRadius: 12,
                         padding: 2,
-                        backgroundColor: theme.toggleBackground,
+                        backgroundColor: isDarkMode
+                          ? theme.primary
+                          : theme.toggleBackground,
                       }}
                     >
                       <Animated.View
@@ -753,7 +759,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                           height: 20,
                           borderRadius: 10,
                           backgroundColor: theme.toggleIndicator,
-                          transform: [{ translateX: darkMode ? 22 : 0 }],
+                          transform: [{ translateX: togglePosition }],
                           shadowColor: "#000",
                           shadowOffset: { width: 0, height: 1 },
                           shadowOpacity: 0.2,

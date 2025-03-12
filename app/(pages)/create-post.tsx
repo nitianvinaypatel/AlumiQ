@@ -29,6 +29,8 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { manipulateAsync } from "expo-image-manipulator";
 import { Video, ResizeMode } from "expo-av";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/constants/theme";
 const { width } = Dimensions.get("window");
 // Define types for our data
 type AudienceOption = {
@@ -92,6 +94,11 @@ const audienceOptions: AudienceOption[] = [
   },
 ];
 export default function AddPostScreen() {
+  // Theme
+  const { theme: themeType } = useTheme();
+  const isDarkMode = themeType === "dark";
+  const theme = isDarkMode ? darkTheme : lightTheme;
+
   // State
   const [postText, setPostText] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -470,11 +477,17 @@ export default function AddPostScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
     >
-      <View className="flex-1 bg-white mt-8">
+      <View
+        className={`flex-1 ${isDarkMode ? "bg-gray-900" : "bg-white"} mt-8`}
+      >
         {/* Professional Header */}
         <Animated.View
           style={{ height: headerHeight }}
-          className="px-4 py-3 flex-row items-center justify-between border-b border-gray-200 bg-white"
+          className={`px-4 py-3 flex-row items-center justify-between border-b ${
+            isDarkMode
+              ? "border-gray-700 bg-gray-800"
+              : "border-gray-200 bg-white"
+          }`}
         >
           <TouchableOpacity
             onPress={() => {
@@ -496,16 +509,30 @@ export default function AddPostScreen() {
                 router.back();
               }
             }}
-            className="w-10 h-10 items-center justify-center rounded-full hover:bg-gray-100"
+            className={`w-10 h-10 items-center justify-center rounded-full ${
+              isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+            }`}
           >
-            <Ionicons name="close" size={24} color="#666" />
+            <Ionicons
+              name="close"
+              size={24}
+              color={isDarkMode ? "#9CA3AF" : "#666"}
+            />
           </TouchableOpacity>
-          <Text className="font-bold text-lg">Create Post</Text>
+          <Text
+            className={`font-bold text-lg ${
+              isDarkMode ? "text-white" : "text-gray-800"
+            }`}
+          >
+            Create Post
+          </Text>
           <TouchableOpacity
             className={`py-2 px-5 rounded-full ${
               (postText.trim().length > 0 || mediaItems.length > 0) &&
               !isPostingInProgress
                 ? "bg-blue-700" // LinkedIn blue
+                : isDarkMode
+                ? "bg-gray-700"
                 : "bg-gray-300"
             }`}
             disabled={
@@ -536,6 +563,8 @@ export default function AddPostScreen() {
                 className={`font-semibold ${
                   postText.trim().length > 0 || mediaItems.length > 0
                     ? "text-white"
+                    : isDarkMode
+                    ? "text-gray-400"
                     : "text-gray-500"
                 }`}
               >
@@ -565,12 +594,24 @@ export default function AddPostScreen() {
                 className="w-12 h-12 rounded-full border border-gray-200"
               />
               <View className="ml-3 flex-1">
-                <Text className="font-bold text-gray-800">Sarah Johnson</Text>
-                <Text className="text-xs text-gray-500 mb-1">
+                <Text
+                  className={`font-bold ${
+                    isDarkMode ? "text-gray-100" : "text-gray-800"
+                  }`}
+                >
+                  Sarah Johnson
+                </Text>
+                <Text
+                  className={`text-xs ${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  } mb-1`}
+                >
                   Product Manager at TechCorp • 3rd
                 </Text>
                 <TouchableOpacity
-                  className="flex-row items-center mt-1 bg-gray-100 rounded-full px-3 py-1.5 self-start"
+                  className={`flex-row items-center mt-1 ${
+                    isDarkMode ? "bg-gray-700" : "bg-gray-100"
+                  } rounded-full px-3 py-1.5 self-start`}
                   onPress={() => setAudienceModalVisible(true)}
                 >
                   {selectedAudience.id === 1 ? (
@@ -586,13 +627,17 @@ export default function AddPostScreen() {
                   ) : (
                     <Ionicons name="school-outline" size={14} color="#0a66c2" />
                   )}
-                  <Text className="text-sm ml-1 text-gray-700 font-medium">
+                  <Text
+                    className={`text-sm ml-1 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    } font-medium`}
+                  >
                     {selectedAudience.name}
                   </Text>
                   <Ionicons
                     name="chevron-down"
                     size={14}
-                    color="#666"
+                    color={isDarkMode ? "#9CA3AF" : "#666"}
                     style={{ marginLeft: 4 }}
                   />
                 </TouchableOpacity>
@@ -603,9 +648,11 @@ export default function AddPostScreen() {
               <TextInput
                 ref={textInputRef}
                 placeholder="What do you want to talk about?"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={isDarkMode ? "#6B7280" : "#9ca3af"}
                 multiline
-                className="text-base text-gray-800 leading-6"
+                className={`text-base ${
+                  isDarkMode ? "text-gray-100" : "text-gray-800"
+                } leading-6`}
                 value={postText}
                 onChangeText={setPostText}
                 style={{ minHeight: 150, textAlignVertical: "top" }}
@@ -618,14 +665,24 @@ export default function AddPostScreen() {
                   {selectedTags.map((tag) => (
                     <TouchableOpacity
                       key={tag}
-                      className="bg-blue-50 rounded-full px-3 py-1 mr-2 mb-2 flex-row items-center"
+                      className={`${
+                        isDarkMode
+                          ? "bg-blue-900/30 border border-blue-800"
+                          : "bg-blue-50"
+                      } rounded-full px-3 py-1 mr-2 mb-2 flex-row items-center`}
                       onPress={() => handleRemoveHashtag(tag)}
                     >
-                      <Text className="text-blue-700 font-medium">#{tag}</Text>
+                      <Text
+                        className={`${
+                          isDarkMode ? "text-blue-300" : "text-blue-700"
+                        } font-medium`}
+                      >
+                        #{tag}
+                      </Text>
                       <Ionicons
                         name="close-circle"
                         size={14}
-                        color="#0a66c2"
+                        color={isDarkMode ? "#60A5FA" : "#0a66c2"}
                         style={{ marginLeft: 4 }}
                       />
                     </TouchableOpacity>
@@ -634,174 +691,245 @@ export default function AddPostScreen() {
               )}
             </View>
 
-            {/* Media Preview Grid */}
-            {mediaItems.length > 0 && (
-              <View className="mx-4 mb-4">
-                <FlatList
-                  data={mediaItems}
-                  horizontal={mediaItems.length === 1}
-                  numColumns={mediaItems.length > 1 ? 2 : 1}
-                  scrollEnabled={false}
-                  keyExtractor={(item) => item.id}
-                  renderItem={({ item }) => (
-                    <View
-                      className={`relative overflow-hidden rounded-lg border border-gray-200 m-1 ${
-                        mediaItems.length === 1
-                          ? "w-full aspect-video"
-                          : "w-40 h-40"
-                      }`}
-                    >
-                      {item.type === "image" ? (
-                        <Image
-                          source={{ uri: item.uri }}
-                          className="w-full h-full"
-                          resizeMode="cover"
-                        />
-                      ) : item.type === "video" ? (
-                        <Video
-                          ref={videoRef}
-                          source={{ uri: item.uri }}
-                          resizeMode={ResizeMode.COVER}
-                          className="w-full h-full"
-                          useNativeControls
-                        />
-                      ) : (
-                        <View className="w-full h-full items-center justify-center bg-gray-100">
-                          <Ionicons
-                            name="document-text"
-                            size={30}
-                            color="#0a66c2"
-                          />
-                          <Text
-                            className="text-xs text-center mt-2 px-2 text-gray-700 font-medium"
-                            numberOfLines={2}
-                          >
-                            {item.name || "Document"}
-                          </Text>
-                        </View>
-                      )}
-                      {/* Upload progress indicator */}
-                      {item.uploading && (
-                        <View className="absolute inset-0 bg-black/50 items-center justify-center">
-                          <ActivityIndicator size="large" color="#ffffff" />
-                          <Text className="text-white mt-2">
-                            {item.uploadProgress
-                              ? `${Math.round(item.uploadProgress)}%`
-                              : "Uploading..."}
-                          </Text>
-                        </View>
-                      )}
-                      {/* Remove button */}
-                      <TouchableOpacity
-                        className="absolute top-2 right-2 bg-black/50 rounded-full w-8 h-8 items-center justify-center"
-                        onPress={() => handleRemoveMedia(item.id)}
-                      >
-                        <Ionicons name="close" size={18} color="white" />
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                />
-              </View>
-            )}
-
             {/* LinkedIn-style divider */}
-            <View className="h-0.5 bg-gray-100 my-2" />
+            <View
+              className={`h-0.5 ${
+                isDarkMode ? "bg-gray-800" : "bg-gray-100"
+              } my-2`}
+            />
 
-            {/* Media and Content options - LinkedIn Style */}
-            <View className="px-4 py-3">
-              <Text className="text-gray-500 text-sm mb-4">
+            {/* Media Attachment Options */}
+            <View
+              className={`px-4 py-4 ${
+                isDarkMode
+                  ? "border-t border-gray-700 bg-gray-800/50"
+                  : "border-t border-gray-200 bg-gray-50/50"
+              }`}
+            >
+              <Text
+                className={`font-medium mb-3 ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
                 Add to your post
               </Text>
               <View className="flex-row justify-between">
                 <TouchableOpacity
-                  className="items-center justify-center w-14 h-14 rounded-full"
                   onPress={() => handleAttachMedia("photo")}
+                  className={`items-center justify-center w-[72px] ${
+                    isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
                 >
-                  <View className="w-10 h-10 rounded-full bg-blue-50 items-center justify-center">
-                    <Ionicons name="image-outline" size={20} color="#0a66c2" />
+                  <View
+                    className={`w-12 h-12 rounded-full ${
+                      isDarkMode ? "bg-blue-900/30" : "bg-blue-50"
+                    } items-center justify-center mb-1`}
+                  >
+                    <Ionicons
+                      name="image-outline"
+                      size={22}
+                      color={isDarkMode ? "#60A5FA" : "#0a66c2"}
+                    />
                   </View>
-                  <Text className="text-xs text-gray-500 mt-1">Photo</Text>
+                  <Text
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Photo
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="items-center justify-center w-14 h-14 rounded-full"
                   onPress={() => handleAttachMedia("video")}
+                  className={`items-center justify-center w-[72px] ${
+                    isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
                 >
-                  <View className="w-10 h-10 rounded-full bg-green-50 items-center justify-center">
+                  <View
+                    className={`w-12 h-12 rounded-full ${
+                      isDarkMode ? "bg-green-900/30" : "bg-green-50"
+                    } items-center justify-center mb-1`}
+                  >
                     <Ionicons
                       name="videocam-outline"
-                      size={20}
-                      color="#0a855c"
+                      size={22}
+                      color={isDarkMode ? "#4ADE80" : "#5f9b41"}
                     />
                   </View>
-                  <Text className="text-xs text-gray-500 mt-1">Video</Text>
+                  <Text
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Video
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="items-center justify-center w-14 h-14 rounded-full"
                   onPress={() => handleAttachMedia("document")}
+                  className={`items-center justify-center w-[72px] ${
+                    isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
                 >
-                  <View className="w-10 h-10 rounded-full bg-orange-50 items-center justify-center">
+                  <View
+                    className={`w-12 h-12 rounded-full ${
+                      isDarkMode ? "bg-orange-900/30" : "bg-orange-50"
+                    } items-center justify-center mb-1`}
+                  >
                     <Ionicons
                       name="document-text-outline"
-                      size={20}
-                      color="#e7a33e"
+                      size={22}
+                      color={isDarkMode ? "#FDBA74" : "#e16745"}
                     />
                   </View>
-                  <Text className="text-xs text-gray-500 mt-1">Document</Text>
+                  <Text
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Document
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="items-center justify-center w-14 h-14 rounded-full"
                   onPress={() => handleAttachMedia("poll")}
+                  className={`items-center justify-center w-[72px] ${
+                    isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
                 >
-                  <View className="w-10 h-10 rounded-full bg-purple-50 items-center justify-center">
+                  <View
+                    className={`w-12 h-12 rounded-full ${
+                      isDarkMode ? "bg-purple-900/30" : "bg-purple-50"
+                    } items-center justify-center mb-1`}
+                  >
                     <Ionicons
                       name="bar-chart-outline"
-                      size={18}
-                      color="#8344cc"
+                      size={22}
+                      color={isDarkMode ? "#C084FC" : "#9333ea"}
                     />
                   </View>
-                  <Text className="text-xs text-gray-500 mt-1">Poll</Text>
+                  <Text
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Poll
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="items-center justify-center w-14 h-14 rounded-full"
                   onPress={() => setShowTagSuggestions(!showTagSuggestions)}
+                  className={`items-center justify-center w-[72px] ${
+                    isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
                 >
-                  <View className="w-10 h-10 rounded-full bg-red-50 items-center justify-center">
+                  <View
+                    className={`w-12 h-12 rounded-full ${
+                      isDarkMode ? "bg-pink-900/30" : "bg-pink-50"
+                    } items-center justify-center mb-1`}
+                  >
                     <Ionicons
                       name="pricetag-outline"
-                      size={20}
-                      color="#c74f4d"
+                      size={22}
+                      color={isDarkMode ? "#F472B6" : "#ec4899"}
                     />
                   </View>
-                  <Text className="text-xs text-gray-500 mt-1">Hashtag</Text>
+                  <Text
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Hashtag
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Hashtag Suggestions */}
+            {/* Hashtag Input */}
             {showTagSuggestions && (
-              <View className="mx-4 mb-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
-                <Text className="font-medium text-gray-700 mb-2">
-                  Trending in your network
-                </Text>
-                {isLoadingHashtags ? (
-                  <ActivityIndicator size="small" color="#0a66c2" />
-                ) : (
+              <View
+                className={`mx-4 mb-4 ${
+                  isDarkMode
+                    ? "bg-gray-800 rounded-t-xl"
+                    : "bg-white rounded-t-xl shadow-sm"
+                }`}
+              >
+                <View
+                  className={`px-4 py-3 flex-row items-center border-b ${
+                    isDarkMode ? "border-gray-700" : "border-gray-200"
+                  }`}
+                >
+                  <Ionicons
+                    name="pricetag-outline"
+                    size={20}
+                    color={isDarkMode ? "#F472B6" : "#ec4899"}
+                    style={{ marginRight: 8 }}
+                  />
+                  <TextInput
+                    placeholder="Add a hashtag"
+                    placeholderTextColor={isDarkMode ? "#6B7280" : "#9ca3af"}
+                    value={postText}
+                    onChangeText={setPostText}
+                    className={`flex-1 ${
+                      isDarkMode ? "text-gray-200" : "text-gray-800"
+                    } text-base`}
+                    autoFocus
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowTagSuggestions(false)}
+                    className={`ml-2 p-1 rounded-full ${
+                      isDarkMode ? "bg-gray-700" : "bg-gray-100"
+                    }`}
+                  >
+                    <Ionicons
+                      name="close"
+                      size={18}
+                      color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Tag Suggestions */}
+                <View className="p-2">
+                  <Text
+                    className={`px-2 py-2 text-sm font-medium ${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    Trending hashtags
+                  </Text>
                   <View className="flex-row flex-wrap">
                     {hashtagSuggestions.map((item) => (
                       <TouchableOpacity
                         key={item.id}
-                        className="bg-white border border-gray-200 rounded-full px-3 py-1.5 mr-2 mb-2"
+                        className={`m-1 px-3 py-2 rounded-full flex-row items-center ${
+                          isDarkMode
+                            ? "bg-gray-700 border border-gray-600"
+                            : "bg-gray-100 border border-gray-200"
+                        }`}
                         onPress={() => handleAddHashtag(item.tag)}
                       >
-                        <Text className="text-gray-700">#{item.tag}</Text>
+                        <Text
+                          className={`${
+                            isDarkMode ? "text-gray-300" : "text-gray-700"
+                          } font-medium`}
+                        >
+                          #{item.tag}
+                        </Text>
+                        <Text
+                          className={`ml-1 text-xs ${
+                            isDarkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
+                        >
+                          {item.count > 999
+                            ? `${(item.count / 1000).toFixed(1)}k`
+                            : item.count}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
-                )}
+                </View>
               </View>
             )}
           </Animated.View>
@@ -815,15 +943,27 @@ export default function AddPostScreen() {
         animationType="slide"
         onRequestClose={() => setAudienceModalVisible(false)}
       >
-        <BlurView intensity={10} className="absolute inset-0">
+        <BlurView intensity={isDarkMode ? 20 : 10} className="absolute inset-0">
           <TouchableOpacity
             className="flex-1"
             onPress={() => setAudienceModalVisible(false)}
           >
             <View className="flex-1 justify-end">
-              <View className="bg-white rounded-t-xl p-4">
-                <View className="w-12 h-4 bg-gray-300 rounded-full mx-auto mb-4" />
-                <Text className="text-xl font-bold mb-4">
+              <View
+                className={`${
+                  isDarkMode ? "bg-gray-900" : "bg-white"
+                } rounded-t-xl p-4`}
+              >
+                <View
+                  className={`w-12 h-4 ${
+                    isDarkMode ? "bg-gray-700" : "bg-gray-300"
+                  } rounded-full mx-auto mb-4`}
+                />
+                <Text
+                  className={`text-xl font-bold mb-4 ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}
+                >
                   Who can see your post?
                 </Text>
 
@@ -832,7 +972,11 @@ export default function AddPostScreen() {
                     key={option.id}
                     className={`flex-row items-center p-3 rounded-lg mb-2 ${
                       selectedAudience.id === option.id
-                        ? "bg-blue-50 border border-blue-200"
+                        ? isDarkMode
+                          ? "bg-blue-900/30 border border-blue-800"
+                          : "bg-blue-50 border border-blue-200"
+                        : isDarkMode
+                        ? "bg-gray-800"
                         : "bg-white"
                     }`}
                     onPress={() => {
@@ -843,7 +987,11 @@ export default function AddPostScreen() {
                     <View
                       className={`w-10 h-10 rounded-full items-center justify-center ${
                         selectedAudience.id === option.id
-                          ? "bg-blue-100"
+                          ? isDarkMode
+                            ? "bg-blue-800/50"
+                            : "bg-blue-100"
+                          : isDarkMode
+                          ? "bg-gray-700"
                           : "bg-gray-100"
                       }`}
                     >
@@ -851,7 +999,13 @@ export default function AddPostScreen() {
                         name={option.icon as any}
                         size={20}
                         color={
-                          selectedAudience.id === option.id ? "#0a66c2" : "#666"
+                          selectedAudience.id === option.id
+                            ? isDarkMode
+                              ? "#60A5FA"
+                              : "#0a66c2"
+                            : isDarkMode
+                            ? "#9CA3AF"
+                            : "#666"
                         }
                       />
                     </View>
@@ -859,13 +1013,21 @@ export default function AddPostScreen() {
                       <Text
                         className={`font-medium ${
                           selectedAudience.id === option.id
-                            ? "text-blue-700"
+                            ? isDarkMode
+                              ? "text-blue-300"
+                              : "text-blue-700"
+                            : isDarkMode
+                            ? "text-gray-200"
                             : "text-gray-800"
                         }`}
                       >
                         {option.name}
                       </Text>
-                      <Text className="text-xs text-gray-500">
+                      <Text
+                        className={`text-xs ${
+                          isDarkMode ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      >
                         {option.description}
                       </Text>
                     </View>
@@ -873,17 +1035,25 @@ export default function AddPostScreen() {
                       <Ionicons
                         name="checkmark-circle"
                         size={24}
-                        color="#0a66c2"
+                        color={isDarkMode ? "#60A5FA" : "#0a66c2"}
                       />
                     )}
                   </TouchableOpacity>
                 ))}
 
                 <TouchableOpacity
-                  className="bg-white border border-gray-300 rounded-full py-2.5 mt-3"
+                  className={`${
+                    isDarkMode
+                      ? "bg-gray-800 border border-gray-700"
+                      : "bg-white border border-gray-300"
+                  } rounded-full py-2.5 mt-3`}
                   onPress={() => setAudienceModalVisible(false)}
                 >
-                  <Text className="text-center font-medium text-gray-700">
+                  <Text
+                    className={`text-center font-medium ${
+                      isDarkMode ? "text-gray-200" : "text-gray-700"
+                    }`}
+                  >
                     Cancel
                   </Text>
                 </TouchableOpacity>
@@ -900,7 +1070,7 @@ export default function AddPostScreen() {
         animationType="slide"
         onRequestClose={() => setIsPollModalVisible(false)}
       >
-        <BlurView intensity={10} className="absolute inset-0">
+        <BlurView intensity={isDarkMode ? 20 : 10} className="absolute inset-0">
           <TouchableOpacity
             className="flex-1"
             activeOpacity={1}
@@ -909,117 +1079,202 @@ export default function AddPostScreen() {
             <View className="flex-1 justify-end">
               <TouchableOpacity
                 activeOpacity={1}
-                onPress={(e) => e.stopPropagation()}
+                onPress={() => {}}
+                className={`${
+                  isDarkMode ? "bg-gray-900" : "bg-white"
+                } rounded-t-xl p-4`}
               >
-                <View className="bg-white rounded-t-xl p-4">
-                  <View className="w-12 h-4 bg-gray-300 rounded-full mx-auto mb-4" />
-                  <Text className="text-xl font-bold mb-4">Create a Poll</Text>
+                <View
+                  className={`w-12 h-4 ${
+                    isDarkMode ? "bg-gray-700" : "bg-gray-300"
+                  } rounded-full mx-auto mb-4`}
+                />
+                <Text
+                  className={`text-xl font-bold mb-4 ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  Create a Poll
+                </Text>
 
-                  <View className="mb-4">
-                    <Text className="text-gray-700 font-medium mb-2">
-                      Question
-                    </Text>
-                    <TextInput
-                      className="bg-gray-100 rounded-lg p-3 text-gray-800"
-                      placeholder="Ask a question..."
-                      value={pollQuestion}
-                      onChangeText={setPollQuestion}
-                    />
-                  </View>
+                <View className="mb-4">
+                  <Text
+                    className={`font-medium mb-2 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Question
+                  </Text>
+                  <TextInput
+                    value={pollQuestion}
+                    onChangeText={setPollQuestion}
+                    placeholder="Ask a question..."
+                    placeholderTextColor={isDarkMode ? "#6B7280" : "#9ca3af"}
+                    className={`border ${
+                      isDarkMode
+                        ? "border-gray-700 bg-gray-800 text-white"
+                        : "border-gray-300 bg-white text-gray-800"
+                    } rounded-lg p-3`}
+                    multiline
+                  />
+                </View>
 
-                  <Text className="text-gray-700 font-medium mb-2">
+                <View className="mb-4">
+                  <Text
+                    className={`font-medium mb-2 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
                     Options
                   </Text>
                   {pollOptions.map((option, index) => (
                     <View key={index} className="flex-row items-center mb-2">
                       <TextInput
-                        className="bg-gray-100 rounded-lg p-3 flex-1 text-gray-800"
-                        placeholder={`Option ${index + 1}`}
                         value={option}
                         onChangeText={(text) =>
                           handleUpdatePollOption(text, index)
                         }
+                        placeholder={`Option ${index + 1}`}
+                        placeholderTextColor={
+                          isDarkMode ? "#6B7280" : "#9ca3af"
+                        }
+                        className={`flex-1 border ${
+                          isDarkMode
+                            ? "border-gray-700 bg-gray-800 text-white"
+                            : "border-gray-300 bg-white text-gray-800"
+                        } rounded-lg p-3 mr-2`}
                       />
                       {pollOptions.length > 2 && (
                         <TouchableOpacity
-                          className="ml-2 w-10 h-10 items-center justify-center rounded-full bg-gray-100"
                           onPress={() => handleRemovePollOption(index)}
+                          className={`w-10 h-10 rounded-full ${
+                            isDarkMode ? "bg-gray-800" : "bg-gray-100"
+                          } items-center justify-center`}
                         >
-                          <Ionicons name="close" size={20} color="#666" />
+                          <Ionicons
+                            name="close"
+                            size={20}
+                            color={isDarkMode ? "#E5E7EB" : "#374151"}
+                          />
                         </TouchableOpacity>
                       )}
                     </View>
                   ))}
-
                   {pollOptions.length < 5 && (
                     <TouchableOpacity
-                      className="flex-row items-center py-3"
                       onPress={handleAddPollOption}
+                      className={`flex-row items-center p-3 ${
+                        isDarkMode ? "bg-gray-800" : "bg-gray-100"
+                      } rounded-lg`}
                     >
                       <Ionicons
                         name="add-circle-outline"
                         size={20}
-                        color="#0a66c2"
+                        color={isDarkMode ? "#60A5FA" : "#0a66c2"}
                       />
-                      <Text className="ml-2 text-blue-700 font-medium">
+                      <Text
+                        className={`ml-2 ${
+                          isDarkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
+                      >
                         Add option
                       </Text>
                     </TouchableOpacity>
                   )}
+                </View>
 
-                  <View className="mt-4 mb-4">
-                    <Text className="text-gray-700 font-medium mb-2">
-                      Poll duration
-                    </Text>
-                    <View className="flex-row justify-between">
-                      {["1d", "3d", "1w", "2w"].map((duration) => (
-                        <TouchableOpacity
-                          key={duration}
-                          className={`py-2 px-4 rounded-full ${
+                <View className="mb-4">
+                  <Text
+                    className={`font-medium mb-2 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Poll duration
+                  </Text>
+                  <View className="flex-row flex-wrap">
+                    {["1d", "3d", "1w", "2w"].map((duration) => (
+                      <TouchableOpacity
+                        key={duration}
+                        className={`mr-2 mb-2 px-4 py-2 rounded-full ${
+                          pollDuration === duration
+                            ? isDarkMode
+                              ? "bg-blue-900/30 border border-blue-800"
+                              : "bg-blue-50 border border-blue-200"
+                            : isDarkMode
+                            ? "bg-gray-800 border border-gray-700"
+                            : "bg-white border border-gray-300"
+                        }`}
+                        onPress={() => setPollDuration(duration)}
+                      >
+                        <Text
+                          className={`${
                             pollDuration === duration
-                              ? "bg-blue-100 border border-blue-300"
-                              : "bg-gray-100"
+                              ? isDarkMode
+                                ? "text-blue-300"
+                                : "text-blue-700"
+                              : isDarkMode
+                              ? "text-gray-300"
+                              : "text-gray-700"
                           }`}
-                          onPress={() => setPollDuration(duration)}
                         >
-                          <Text
-                            className={`${
-                              pollDuration === duration
-                                ? "text-blue-700"
-                                : "text-gray-700"
-                            } font-medium`}
-                          >
-                            {duration === "1d"
-                              ? "1 day"
-                              : duration === "3d"
-                              ? "3 days"
-                              : duration === "1w"
-                              ? "1 week"
-                              : "2 weeks"}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
+                          {duration === "1d"
+                            ? "1 day"
+                            : duration === "3d"
+                            ? "3 days"
+                            : duration === "1w"
+                            ? "1 week"
+                            : "2 weeks"}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
                   </View>
+                </View>
 
-                  <View className="flex-row mt-4">
-                    <TouchableOpacity
-                      className="flex-1 bg-gray-100 rounded-full py-2.5 mr-2"
-                      onPress={() => setIsPollModalVisible(false)}
+                <View className="flex-row mt-4">
+                  <TouchableOpacity
+                    className={`flex-1 mr-2 py-3 rounded-lg ${
+                      isDarkMode
+                        ? "bg-gray-800 border border-gray-700"
+                        : "bg-white border border-gray-300"
+                    }`}
+                    onPress={() => setIsPollModalVisible(false)}
+                  >
+                    <Text
+                      className={`text-center font-medium ${
+                        isDarkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
                     >
-                      <Text className="text-center font-medium text-gray-700">
-                        Cancel
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className="flex-1 bg-blue-600 rounded-full py-2.5 ml-2"
-                      onPress={handleCreatePoll}
+                      Cancel
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className={`flex-1 ml-2 py-3 rounded-lg ${
+                      !pollQuestion.trim() ||
+                      pollOptions.filter((o) => o.trim()).length < 2
+                        ? isDarkMode
+                          ? "bg-blue-900/30"
+                          : "bg-blue-100"
+                        : "bg-blue-600"
+                    }`}
+                    onPress={handleCreatePoll}
+                    disabled={
+                      !pollQuestion.trim() ||
+                      pollOptions.filter((o) => o.trim()).length < 2
+                    }
+                  >
+                    <Text
+                      className={`text-center font-medium ${
+                        !pollQuestion.trim() ||
+                        pollOptions.filter((o) => o.trim()).length < 2
+                          ? isDarkMode
+                            ? "text-blue-300"
+                            : "text-blue-400"
+                          : "text-white"
+                      }`}
                     >
-                      <Text className="text-center font-medium text-white">
-                        Create Poll
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                      Create Poll
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </TouchableOpacity>
             </View>

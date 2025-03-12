@@ -13,6 +13,8 @@ import {
 import { Stack, Link, useRouter } from "expo-router";
 import { Ionicons, MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
+import { useTheme } from "@/contexts/ThemeContext";
+import { lightTheme, darkTheme } from "@/contexts/ThemeContext";
 
 // Enhanced Message interface with more LinkedIn-like properties
 interface Message {
@@ -36,15 +38,6 @@ interface Message {
   isRead?: boolean;
   dateGroup?: string;
 }
-
-// Quick reply suggestions
-const QUICK_REPLIES = [
-  "Thanks for reaching out!",
-  "I'm interested in learning more.",
-  "Let's connect for a call.",
-  "What opportunities are you looking for?",
-  "I'll get back to you soon.",
-];
 
 // Enhanced dummy messages with more professional content
 const DUMMY_MESSAGES: Message[] = [
@@ -187,6 +180,11 @@ const MessagesScreen = () => {
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showComposeOptions, setShowComposeOptions] = useState(false);
 
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const themeColors = isDarkMode ? darkTheme : lightTheme;
+
   // Simulate loading effect
   useEffect(() => {
     if (activeTab !== "focused" || activeFilter !== "all") {
@@ -282,8 +280,14 @@ const MessagesScreen = () => {
 
   const renderMessageItem = ({ item }: { item: Message }) => (
     <TouchableOpacity
-      className={`flex-row items-center bg-white rounded-xl mb-3 p-3 ${
-        item.unread ? "bg-blue-50" : ""
+      className={`flex-row items-center rounded-xl mb-3 p-3 ${
+        isDarkMode
+          ? item.unread
+            ? "bg-gray-800"
+            : "bg-gray-900"
+          : item.unread
+          ? "bg-blue-50"
+          : "bg-white"
       }`}
       onPress={() => {
         markAsRead(item.id);
@@ -311,14 +315,28 @@ const MessagesScreen = () => {
 
       <View className="flex-1">
         <View className="flex-row justify-between mb-1">
-          <Text className="text-base font-semibold text-gray-800">
+          <Text
+            className={`text-base font-semibold ${
+              isDarkMode ? "text-gray-100" : "text-gray-800"
+            }`}
+          >
             {item.sender.name}
           </Text>
-          <Text className="text-xs text-gray-500">{item.timestamp}</Text>
+          <Text
+            className={`text-xs ${
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            }`}
+          >
+            {item.timestamp}
+          </Text>
         </View>
 
         {item.sender.title && (
-          <Text className="text-xs text-gray-500 mb-1">
+          <Text
+            className={`text-xs ${
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            } mb-1`}
+          >
             {item.sender.title}
             {item.sender.company ? ` at ${item.sender.company}` : ""}
           </Text>
@@ -326,21 +344,39 @@ const MessagesScreen = () => {
 
         <View className="flex-row items-center">
           {item.lastMessageSender === "user" && (
-            <Text className="text-xs text-gray-500 mr-1">You: </Text>
+            <Text
+              className={`text-xs ${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              } mr-1`}
+            >
+              You:{" "}
+            </Text>
           )}
 
           {item.isTyping ? (
             <View className="flex-row items-center">
-              <Text className="text-sm text-gray-600 italic">typing</Text>
+              <Text
+                className={`text-sm ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                } italic`}
+              >
+                typing
+              </Text>
               <View className="flex-row ml-1">
-                <View className="w-1.5 h-1.5 bg-gray-500 rounded-full mx-0.5 animate-bounce" />
                 <View
-                  className="w-1.5 h-1.5 bg-gray-500 rounded-full mx-0.5 animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
+                  className={`w-1.5 h-1.5 ${
+                    isDarkMode ? "bg-gray-400" : "bg-gray-500"
+                  } rounded-full mx-0.5 animate-bounce`}
                 />
                 <View
-                  className="w-1.5 h-1.5 bg-gray-500 rounded-full mx-0.5 animate-bounce"
-                  style={{ animationDelay: "0.4s" }}
+                  className={`w-1.5 h-1.5 ${
+                    isDarkMode ? "bg-gray-400" : "bg-gray-500"
+                  } rounded-full mx-0.5 animate-bounce`}
+                />
+                <View
+                  className={`w-1.5 h-1.5 ${
+                    isDarkMode ? "bg-gray-400" : "bg-gray-500"
+                  } rounded-full mx-0.5 animate-bounce`}
                 />
               </View>
             </View>
@@ -348,7 +384,13 @@ const MessagesScreen = () => {
             <View className="flex-row items-center flex-1">
               <Text
                 className={`text-sm ${
-                  item.unread ? "font-medium text-gray-800" : "text-gray-600"
+                  item.unread
+                    ? `font-medium ${
+                        isDarkMode ? "text-gray-100" : "text-gray-800"
+                      }`
+                    : isDarkMode
+                    ? "text-gray-300"
+                    : "text-gray-600"
                 }`}
                 numberOfLines={1}
               >
@@ -359,7 +401,7 @@ const MessagesScreen = () => {
                 <Ionicons
                   name="attach"
                   size={16}
-                  color="#666"
+                  color={isDarkMode ? "#aaa" : "#666"}
                   className="ml-1"
                 />
               )}
@@ -375,7 +417,7 @@ const MessagesScreen = () => {
           <Ionicons
             name="checkmark-done"
             size={16}
-            color="#0077B5"
+            color={themeColors.primary}
             className="ml-2"
           />
         ) : null}
@@ -387,7 +429,11 @@ const MessagesScreen = () => {
             // Show message options
           }}
         >
-          <Ionicons name="ellipsis-vertical" size={16} color="#666" />
+          <Ionicons
+            name="ellipsis-vertical"
+            size={16}
+            color={isDarkMode ? "#aaa" : "#666"}
+          />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -395,7 +441,13 @@ const MessagesScreen = () => {
 
   const renderDateGroup = ({ item }: { item: string }) => (
     <View className="mb-4">
-      <Text className="text-sm font-medium text-gray-500 mb-2">{item}</Text>
+      <Text
+        className={`text-sm font-medium ${
+          isDarkMode ? "text-gray-400" : "text-gray-500"
+        } mb-2`}
+      >
+        {item}
+      </Text>
       {groupedMessages[item].map((message) => (
         <View key={message.id}>{renderMessageItem({ item: message })}</View>
       ))}
@@ -403,23 +455,31 @@ const MessagesScreen = () => {
   );
 
   return (
-    <View className="flex-1 bg-gray-50 ">
+    <View className={`flex-1 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}>
       <Stack.Screen
         options={{
           title: "Messages",
-          headerTintColor: "#0077B5",
+          headerTintColor: themeColors.primary,
           headerShadowVisible: false,
-          headerStyle: { backgroundColor: "#f8f9fa" },
+          headerStyle: {
+            backgroundColor: isDarkMode
+              ? themeColors.cardBackground
+              : "#f8f9fa",
+          },
           headerRight: () => (
             <View className="flex-row">
               <TouchableOpacity
                 className="mr-4"
                 onPress={() => setShowFilterMenu(!showFilterMenu)}
               >
-                <Ionicons name="filter" size={22} color="#0077B5" />
+                <Ionicons name="filter" size={22} color={themeColors.primary} />
               </TouchableOpacity>
               <TouchableOpacity>
-                <Ionicons name="settings-outline" size={22} color="#0077B5" />
+                <Ionicons
+                  name="settings-outline"
+                  size={22}
+                  color={themeColors.primary}
+                />
               </TouchableOpacity>
             </View>
           ),
@@ -427,7 +487,13 @@ const MessagesScreen = () => {
       />
 
       {/* Tabs */}
-      <View className="flex-row border-b border-gray-200 bg-white">
+      <View
+        className={`flex-row border-b ${
+          isDarkMode
+            ? "border-gray-700 bg-gray-800"
+            : "border-gray-200 bg-white"
+        }`}
+      >
         <TouchableOpacity
           className={`flex-1 py-3 px-4 ${
             activeTab === "focused" ? "border-b-2 border-blue-600" : ""
@@ -436,7 +502,13 @@ const MessagesScreen = () => {
         >
           <Text
             className={`text-center font-medium ${
-              activeTab === "focused" ? "text-blue-600" : "text-gray-600"
+              activeTab === "focused"
+                ? isDarkMode
+                  ? "text-blue-400"
+                  : "text-blue-600"
+                : isDarkMode
+                ? "text-gray-400"
+                : "text-gray-600"
             }`}
           >
             Focused
@@ -450,7 +522,13 @@ const MessagesScreen = () => {
         >
           <Text
             className={`text-center font-medium ${
-              activeTab === "other" ? "text-blue-600" : "text-gray-600"
+              activeTab === "other"
+                ? isDarkMode
+                  ? "text-blue-400"
+                  : "text-blue-600"
+                : isDarkMode
+                ? "text-gray-400"
+                : "text-gray-600"
             }`}
           >
             Other
@@ -464,7 +542,13 @@ const MessagesScreen = () => {
         >
           <Text
             className={`text-center font-medium ${
-              activeTab === "archived" ? "text-blue-600" : "text-gray-600"
+              activeTab === "archived"
+                ? isDarkMode
+                  ? "text-blue-400"
+                  : "text-blue-600"
+                : isDarkMode
+                ? "text-gray-400"
+                : "text-gray-600"
             }`}
           >
             Archived
@@ -473,17 +557,33 @@ const MessagesScreen = () => {
       </View>
 
       {/* Search */}
-      <View className="flex-row items-center bg-white rounded-lg mx-4 my-4 px-3 py-2 shadow-sm">
-        <Ionicons name="search" size={20} color="#666" className="mr-2" />
+      <View
+        className={`flex-row items-center ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        } rounded-lg mx-4 my-4 px-3 py-2 shadow-sm`}
+      >
+        <Ionicons
+          name="search"
+          size={20}
+          color={isDarkMode ? "#aaa" : "#666"}
+          className="mr-2"
+        />
         <TextInput
-          className="flex-1 h-10 text-base"
+          className={`flex-1 h-10 text-base ${
+            isDarkMode ? "text-white" : "text-black"
+          }`}
+          placeholderTextColor={isDarkMode ? "#999" : "#999"}
           placeholder="Search messages"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <Ionicons name="close-circle" size={20} color="#666" />
+            <Ionicons
+              name="close-circle"
+              size={20}
+              color={isDarkMode ? "#aaa" : "#666"}
+            />
           </TouchableOpacity>
         )}
       </View>
@@ -496,7 +596,11 @@ const MessagesScreen = () => {
           </Text>
           <TouchableOpacity
             className={`flex-row items-center py-2 ${
-              activeFilter === "all" ? "bg-blue-50" : ""
+              activeFilter === "all"
+                ? isDarkMode
+                  ? "bg-gray-700"
+                  : "bg-blue-50"
+                : ""
             }`}
             onPress={() => {
               setActiveFilter("all");
@@ -642,23 +746,6 @@ const MessagesScreen = () => {
           </TouchableOpacity>
         </View>
       )}
-
-      {/* Quick replies */}
-      <View className="bg-white border-t border-gray-200 py-3 px-4">
-        <Text className="text-sm font-medium text-gray-700 mb-2">
-          Quick replies
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {QUICK_REPLIES.map((reply, index) => (
-            <TouchableOpacity
-              key={index}
-              className="bg-gray-100 rounded-full py-2 px-4 mr-2"
-            >
-              <Text className="text-sm text-gray-800">{reply}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
     </View>
   );
 };

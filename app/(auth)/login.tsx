@@ -26,6 +26,7 @@ import { MotiView, AnimatePresence } from "moti";
 import { SharedElement } from "react-navigation-shared-element";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import { useTheme, ThemeColors } from "@/contexts/ThemeContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -42,6 +43,7 @@ interface InputFieldProps {
   blurOnSubmit?: boolean;
   ref?: React.RefObject<TextInput>;
   testID?: string;
+  theme: ThemeColors;
 }
 
 const InputField = React.forwardRef<TextInput, InputFieldProps>(
@@ -58,11 +60,13 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
       returnKeyType,
       blurOnSubmit,
       testID,
+      theme,
     },
     ref
   ) => {
     const [isFocused, setIsFocused] = useState(false);
     const scaleAnim = useRef(new Animated.Value(1)).current;
+    const { theme: themeType } = useTheme();
 
     const handleFocus = () => {
       setIsFocused(true);
@@ -90,27 +94,39 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
         <Animated.View
           style={{
             transform: [{ scale: scaleAnim }],
-            shadowColor: isFocused ? "#0077B5" : "#000",
-            shadowOffset: { width: 0, height: isFocused ? 4 : 2 },
-            shadowOpacity: isFocused ? 0.2 : 0.1,
-            shadowRadius: isFocused ? 8 : 4,
-            elevation: isFocused ? 4 : 2,
+            shadowColor: isFocused
+              ? theme.primary
+              : theme.elevation.shadowColor,
+            shadowOffset: isFocused
+              ? { width: 0, height: 4 }
+              : theme.elevation.shadowOffset,
+            shadowOpacity: isFocused ? 0.2 : theme.elevation.shadowOpacity,
+            shadowRadius: isFocused ? 8 : theme.elevation.shadowRadius,
+            elevation: isFocused ? 4 : theme.elevation.elevation,
+            backgroundColor: theme.inputBackground,
+            borderRadius: 12,
+            overflow: "hidden",
+            borderWidth: 1,
+            borderColor: isFocused
+              ? theme.primary
+              : error
+              ? theme.error
+              : theme.border,
           }}
-          className={`bg-white/90 rounded-xl overflow-hidden
-          ${isFocused ? "border-[#0077B5] border" : "border-gray-100 border"}
-          ${error ? "border-red-400" : ""}`}
           testID={`${testID}-container`}
         >
           <BlurView
             intensity={80}
-            tint="light"
+            tint={themeType === "dark" ? "dark" : "light"}
             className="flex-row items-center"
           >
             <View className="px-4 py-3.5">
               <Ionicons
                 name={icon}
                 size={20}
-                color={isFocused ? "#0077B5" : error ? "#EF4444" : "#94A3B8"}
+                color={
+                  isFocused ? theme.primary : error ? theme.error : theme.text
+                }
               />
             </View>
             <TextInput
@@ -123,8 +139,12 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
               autoCapitalize="none"
               onFocus={handleFocus}
               onBlur={handleBlur}
-              className="flex-1 py-3.5 text-gray-700 pr-4 font-medium"
-              placeholderTextColor="#94A3B8"
+              className="flex-1 py-3.5 pr-4 font-medium"
+              style={{
+                color: theme.text,
+                fontSize: 16,
+              }}
+              placeholderTextColor={theme.textSecondary}
               onSubmitEditing={onSubmitEditing}
               returnKeyType={returnKeyType}
               blurOnSubmit={blurOnSubmit}
@@ -142,7 +162,9 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
               className="mt-1"
               testID={`${testID}-error`}
             >
-              <Text className="text-red-500 text-sm ml-1">{error}</Text>
+              <Text style={{ color: theme.error }} className="text-sm ml-1">
+                {error}
+              </Text>
             </MotiView>
           )}
         </AnimatePresence>
@@ -157,7 +179,8 @@ const SocialButton: React.FC<{
   label: string;
   onPress: () => void;
   testID?: string;
-}> = ({ icon, color, label, onPress, testID }) => {
+  theme: ThemeColors;
+}> = ({ icon, color, label, onPress, testID, theme }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -182,11 +205,11 @@ const SocialButton: React.FC<{
     <Animated.View
       style={{
         transform: [{ scale: scaleAnim }],
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowColor: theme.elevation.shadowColor,
+        shadowOffset: theme.elevation.shadowOffset,
+        shadowOpacity: theme.elevation.shadowOpacity,
+        shadowRadius: theme.elevation.shadowRadius,
+        elevation: theme.elevation.elevation,
       }}
     >
       <TouchableOpacity
@@ -196,12 +219,25 @@ const SocialButton: React.FC<{
         }}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        className="bg-white/95 p-4 rounded-2xl border border-gray-200 flex-row items-center justify-center px-10 space-x-3"
+        style={{
+          backgroundColor: theme.cardBackground,
+          padding: 16,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: theme.border,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          paddingHorizontal: 40,
+          gap: 12,
+        }}
         testID={testID}
         activeOpacity={0.9}
       >
         <Ionicons name={icon} size={24} color={color} />
-        <Text className="text-gray-900 font-semibold text-base">{label}</Text>
+        <Text style={{ color: theme.text, fontWeight: "600", fontSize: 16 }}>
+          {label}
+        </Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -219,6 +255,11 @@ export default function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isLoading, error } = useAppSelector((state) => state.auth);
+  const { theme: themeType, toggleTheme } = useTheme();
+  const isDarkMode = themeType === "dark";
+  const theme = isDarkMode
+    ? require("@/contexts/ThemeContext").darkTheme
+    : require("@/contexts/ThemeContext").lightTheme;
 
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
@@ -302,11 +343,11 @@ export default function LoginScreen() {
   };
 
   const validatePassword = (password: string) => {
-    if (!password) {
+    if (!password || password.trim() === "") {
       setPasswordError("Password is required");
       return false;
     }
-    if (password.length < 6) {
+    if (password.trim().length < 6) {
       setPasswordError("Password must be at least 6 characters");
       return false;
     }
@@ -347,17 +388,45 @@ export default function LoginScreen() {
     // Implement social sign-in logic
   };
 
-  const gradientColors = useMemo(() => ["#ffffff", "#f3f4f6", "#e5e7eb"], []);
+  const gradientColors = useMemo<readonly [string, string, string]>(
+    () =>
+      isDarkMode
+        ? (["#121212", "#1a1a1a", "#262626"] as const)
+        : (["#ffffff", "#f3f4f6", "#e5e7eb"] as const),
+    [isDarkMode]
+  );
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+      style={{
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        backgroundColor: theme.background,
+      }}
       testID="login-screen"
     >
-      <StatusBar style="dark" />
+      <StatusBar style={isDarkMode ? "light" : "dark"} />
       <LinearGradient colors={gradientColors} className="flex-1">
+        <View className="absolute top-4 right-4 z-10">
+          <TouchableOpacity
+            onPress={() => {
+              toggleTheme();
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }}
+            className="p-2 rounded-full"
+            style={{ backgroundColor: theme.iconBackground }}
+            testID="theme-toggle"
+          >
+            <Ionicons
+              name={isDarkMode ? "sunny-outline" : "moon-outline"}
+              size={24}
+              color={theme.text}
+            />
+          </TouchableOpacity>
+        </View>
+
         <ScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
@@ -394,10 +463,16 @@ export default function LoginScreen() {
               transition={{ type: "timing", duration: 1000 }}
               className={keyboardVisible ? "hidden" : ""}
             >
-              <Text className="text-3xl font-bold text-center text-gray-800 mt-4">
+              <Text
+                className="text-3xl font-bold text-center mt-4"
+                style={{ color: theme.text }}
+              >
                 Welcome Back
               </Text>
-              <Text className="text-center text-gray-500 mt-2">
+              <Text
+                className="text-center mt-2"
+                style={{ color: theme.textSecondary }}
+              >
                 Sign in to continue to AlumiQ
               </Text>
             </MotiView>
@@ -411,10 +486,18 @@ export default function LoginScreen() {
                   animate={{ opacity: 1, translateY: 0 }}
                   exit={{ opacity: 0, translateY: -10 }}
                   transition={{ type: "timing", duration: 300 }}
-                  className="bg-red-50 p-4 rounded-xl backdrop-blur-lg"
+                  style={{
+                    backgroundColor: isDarkMode
+                      ? "rgba(239, 68, 68, 0.2)"
+                      : "rgba(239, 68, 68, 0.1)",
+                    padding: 16,
+                    borderRadius: 12,
+                  }}
                   testID="login-error"
                 >
-                  <Text className="text-red-500 text-center">{error}</Text>
+                  <Text style={{ color: theme.error }} className="text-center">
+                    {error}
+                  </Text>
                 </MotiView>
               )}
             </AnimatePresence>
@@ -434,15 +517,16 @@ export default function LoginScreen() {
               onSubmitEditing={() => passwordRef.current?.focus()}
               blurOnSubmit={false}
               testID="email-input"
+              theme={theme}
             />
 
             <View className="relative">
               <InputField
                 ref={passwordRef}
-                value={password}
+                value={password || ""}
                 onChangeText={(text) => {
-                  setPassword(text);
-                  if (passwordError) validatePassword(text);
+                  setPassword(text || "");
+                  if (passwordError) validatePassword(text || "");
                 }}
                 placeholder="Password"
                 icon="lock-closed-outline"
@@ -451,6 +535,7 @@ export default function LoginScreen() {
                 returnKeyType="go"
                 onSubmitEditing={handleLogin}
                 testID="password-input"
+                theme={theme}
               />
               <TouchableOpacity
                 onPress={() => {
@@ -463,7 +548,7 @@ export default function LoginScreen() {
                 <Ionicons
                   name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={20}
-                  color="#64748B"
+                  color={theme.textSecondary}
                 />
               </TouchableOpacity>
             </View>
@@ -471,7 +556,7 @@ export default function LoginScreen() {
             <Animated.View
               style={{
                 transform: [{ scale: buttonScaleAnim }],
-                shadowColor: "#0077B5",
+                shadowColor: theme.primary,
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.3,
                 shadowRadius: 8,
@@ -483,9 +568,13 @@ export default function LoginScreen() {
                   animateButton();
                   handleLogin();
                 }}
-                className={`bg-[#0077B5] mt-6 rounded-xl py-4 ${
-                  isLoading ? "opacity-70" : ""
-                }`}
+                style={{
+                  backgroundColor: theme.primary,
+                  marginTop: 24,
+                  borderRadius: 12,
+                  padding: 16,
+                  opacity: isLoading ? 0.7 : 1,
+                }}
                 disabled={isLoading}
                 testID="sign-in-button"
                 activeOpacity={0.85}
@@ -508,7 +597,10 @@ export default function LoginScreen() {
               }
             >
               <Link href="/(auth)/forgot-password" asChild>
-                <Text className="text-center text-[#0077B5] font-medium">
+                <Text
+                  className="text-center font-medium"
+                  style={{ color: theme.primary }}
+                >
                   Forgot Password?
                 </Text>
               </Link>
@@ -516,9 +608,17 @@ export default function LoginScreen() {
 
             <View className="mt-8">
               <View className="flex-row items-center mb-6">
-                <View className="flex-1 h-[1px] bg-gray-200" />
-                <Text className="mx-4 text-gray-500">or continue with</Text>
-                <View className="flex-1 h-[1px] bg-gray-200" />
+                <View
+                  className="flex-1 h-[1px]"
+                  style={{ backgroundColor: theme.divider }}
+                />
+                <Text className="mx-4" style={{ color: theme.textSecondary }}>
+                  or continue with
+                </Text>
+                <View
+                  className="flex-1 h-[1px]"
+                  style={{ backgroundColor: theme.divider }}
+                />
               </View>
 
               <View className="flex-col justify-center space-y-4 gap-3">
@@ -528,6 +628,7 @@ export default function LoginScreen() {
                   label="Sign in with Google"
                   onPress={() => handleSocialSignIn("Google")}
                   testID="google-sign-in"
+                  theme={theme}
                 />
 
                 <SocialButton
@@ -536,11 +637,14 @@ export default function LoginScreen() {
                   label="Sign in with Facebook"
                   onPress={() => handleSocialSignIn("Facebook")}
                   testID="facebook-sign-in"
+                  theme={theme}
                 />
               </View>
 
               <View className="mt-6 flex-row justify-center">
-                <Text className="text-gray-600">Don't have an account?</Text>
+                <Text style={{ color: theme.textSecondary }}>
+                  Don't have an account?
+                </Text>
                 <Link href="/(auth)/signup" asChild>
                   <TouchableOpacity
                     className="ml-1"
@@ -549,7 +653,7 @@ export default function LoginScreen() {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                     }
                   >
-                    <Text className="text-[#0077B5] font-semibold">
+                    <Text style={{ color: theme.primary, fontWeight: "600" }}>
                       Sign Up
                     </Text>
                   </TouchableOpacity>

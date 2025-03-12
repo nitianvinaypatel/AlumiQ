@@ -112,7 +112,7 @@ export const lightTheme: ThemeColors = {
 
 export const darkTheme: ThemeColors = {
   background: "#18191A",
-  cardBackground: "#242526",
+  cardBackground: "#1f2937",
   text: "#E4E6EB",
   textSecondary: "#B0B3B8",
   iconBackground: "rgba(255,255,255,0.1)",
@@ -146,7 +146,7 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const systemTheme = useColorScheme();
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("dark");
 
   // Load theme from storage
   useEffect(() => {
@@ -154,8 +154,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       const storedTheme = await AsyncStorage.getItem("theme");
       if (storedTheme === "light" || storedTheme === "dark") {
         setTheme(storedTheme);
-      } else if (systemTheme) {
-        setTheme(systemTheme);
+      } else {
+        setTheme("dark");
       }
     };
     loadTheme();

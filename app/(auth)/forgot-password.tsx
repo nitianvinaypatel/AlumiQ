@@ -23,6 +23,7 @@ import { MotiView, AnimatePresence } from "moti";
 import { SharedElement } from "react-navigation-shared-element";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import { useTheme, lightTheme, darkTheme } from "@/contexts/ThemeContext";
 
 interface InputFieldProps {
   value: string;
@@ -35,6 +36,8 @@ interface InputFieldProps {
   onSubmitEditing?: () => void;
   returnKeyType?: "done" | "next" | "go";
   testID?: string;
+  isDarkMode?: boolean;
+  themeColors?: any;
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -48,6 +51,8 @@ const InputField: React.FC<InputFieldProps> = ({
   onSubmitEditing,
   returnKeyType,
   testID,
+  isDarkMode = false,
+  themeColors,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -78,23 +83,49 @@ const InputField: React.FC<InputFieldProps> = ({
       <Animated.View
         style={{
           transform: [{ scale: scaleAnim }],
-          shadowColor: isFocused ? "#1E40AF" : "#000",
+          shadowColor: isFocused
+            ? themeColors.primary
+            : isDarkMode
+            ? "#000"
+            : "#000",
           shadowOffset: { width: 0, height: isFocused ? 4 : 2 },
           shadowOpacity: isFocused ? 0.25 : 0.1,
           shadowRadius: isFocused ? 8 : 4,
           elevation: isFocused ? 5 : 2,
+          backgroundColor: isDarkMode
+            ? "rgba(31, 41, 55, 0.95)"
+            : "rgba(255, 255, 255, 0.95)",
+          borderRadius: 12,
+          overflow: "hidden",
+          borderWidth: 1,
+          borderColor: isFocused
+            ? themeColors.primary
+            : error
+            ? "#EF4444"
+            : isDarkMode
+            ? "rgba(55, 65, 81, 0.5)"
+            : "rgba(229, 231, 235, 0.8)",
         }}
-        className={`bg-white/95 rounded-xl overflow-hidden
-          ${isFocused ? "border-blue-700 border" : "border-gray-100 border"}
-          ${error ? "border-red-400" : ""}`}
         testID={`${testID}-container`}
       >
-        <BlurView intensity={90} tint="light" className="flex-row items-center">
+        <BlurView
+          intensity={isDarkMode ? 70 : 90}
+          tint={isDarkMode ? "dark" : "light"}
+          className="flex-row items-center"
+        >
           <View className="px-4 py-4">
             <Ionicons
               name={icon}
               size={22}
-              color={isFocused ? "#1E40AF" : error ? "#EF4444" : "#64748B"}
+              color={
+                isFocused
+                  ? themeColors.primary
+                  : error
+                  ? "#EF4444"
+                  : isDarkMode
+                  ? "rgba(209, 213, 219, 0.8)"
+                  : "rgba(75, 85, 99, 0.8)"
+              }
             />
           </View>
           <TextInput
@@ -105,8 +136,21 @@ const InputField: React.FC<InputFieldProps> = ({
             autoCapitalize="none"
             onFocus={handleFocus}
             onBlur={handleBlur}
-            className="flex-1 py-4 text-gray-800 pr-4 font-medium text-base"
-            placeholderTextColor="#94A3B8"
+            style={{
+              flex: 1,
+              paddingVertical: 16,
+              paddingRight: 16,
+              fontWeight: "500",
+              fontSize: 16,
+              color: isDarkMode
+                ? "rgba(229, 231, 235, 0.95)"
+                : "rgba(31, 41, 55, 0.95)",
+            }}
+            placeholderTextColor={
+              isDarkMode
+                ? "rgba(156, 163, 175, 0.7)"
+                : "rgba(107, 114, 128, 0.7)"
+            }
             editable={editable}
             onSubmitEditing={onSubmitEditing}
             returnKeyType={returnKeyType}
@@ -124,7 +168,16 @@ const InputField: React.FC<InputFieldProps> = ({
             className="mt-2"
             testID={`${testID}-error`}
           >
-            <Text className="text-red-500 text-sm ml-1 font-medium">
+            <Text
+              style={{
+                color: isDarkMode
+                  ? "rgba(248, 113, 113, 0.9)"
+                  : "rgba(220, 38, 38, 0.9)",
+                fontSize: 14,
+                marginLeft: 4,
+                fontWeight: "500",
+              }}
+            >
               {error}
             </Text>
           </MotiView>
@@ -149,6 +202,11 @@ export default function ForgotPasswordScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isLoading, error } = useAppSelector((state) => state.auth);
+
+  // Theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const themeColors = isDarkMode ? darkTheme : lightTheme;
 
   // Derived animated values for the logo
   const logoScale = logoAnimatedValue.interpolate({
@@ -253,44 +311,66 @@ export default function ForgotPasswordScreen() {
     ]).start();
   };
 
+  // Gradient colors based on theme
+  const gradientColors = isDarkMode
+    ? ([
+        themeColors.background,
+        themeColors.cardBackground,
+        themeColors.surfaceBackground,
+      ] as const)
+    : (["#ffffff", "#f8fafc", "#f1f5f9"] as const);
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1"
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+      style={{
+        flex: 1,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        backgroundColor: isDarkMode ? themeColors.background : "#ffffff",
+      }}
       testID="forgot-password-screen"
     >
-      <StatusBar style="dark" />
-      <LinearGradient
-        colors={["#ffffff", "#f8fafc", "#f1f5f9"]}
-        className="flex-1"
-      >
+      <StatusBar style={isDarkMode ? "light" : "dark"} />
+      <LinearGradient colors={gradientColors} style={{ flex: 1 }}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             flexGrow: 1,
             paddingBottom: 24,
+            paddingHorizontal: 28,
           }}
-          className="px-7"
           showsVerticalScrollIndicator={false}
         >
           <Animated.View
             style={{
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }, { scale: logoScale }],
+              marginTop: keyboardVisible ? 40 : 80,
+              marginBottom: keyboardVisible ? 32 : 48,
             }}
-            className={`${keyboardVisible ? "mt-10 mb-8" : "mt-20 mb-12"}`}
           >
             <SharedElement id="alumiq-logo">
               <Animated.View
                 style={{
                   transform: [{ translateY: logoTranslateY }],
+                  alignItems: "center",
                 }}
-                className="items-center"
               >
                 <Image
                   source={require("@/assets/images/AlumiQ.png")}
-                  className="w-28 h-28 self-center rounded-full shadow-md"
+                  style={{
+                    width: 112,
+                    height: 112,
+                    alignSelf: "center",
+                    borderRadius: 56,
+                    shadowColor: isDarkMode
+                      ? "rgba(0, 0, 0, 0.5)"
+                      : "rgba(0, 0, 0, 0.3)",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                  }}
                   resizeMode="contain"
                 />
               </Animated.View>
@@ -299,17 +379,45 @@ export default function ForgotPasswordScreen() {
               from={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "timing", duration: 1000 }}
-              className={keyboardVisible ? "hidden" : "mt-6"}
+              style={{
+                marginTop: 24,
+                display: keyboardVisible ? "none" : "flex",
+              }}
             >
-              <Text className="text-3xl font-bold text-center text-gray-800">
+              <Text
+                style={{
+                  fontSize: 28,
+                  fontWeight: "700",
+                  textAlign: "center",
+                  color: isDarkMode
+                    ? "rgba(243, 244, 246, 0.95)"
+                    : "rgba(31, 41, 55, 0.95)",
+                  letterSpacing: 0.3,
+                }}
+              >
                 Password Reset
               </Text>
-              <Text className="text-center text-gray-500 mt-3 text-base">
+              <Text
+                style={{
+                  textAlign: "center",
+                  color: isDarkMode
+                    ? "rgba(209, 213, 219, 0.8)"
+                    : "rgba(107, 114, 128, 0.8)",
+                  marginTop: 12,
+                  fontSize: 16,
+                  lineHeight: 22,
+                }}
+              >
                 Enter your email to receive password reset instructions
               </Text>
             </MotiView>
           </Animated.View>
-          <Animated.View style={{ opacity: fadeAnim }} className="space-y-5">
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              marginBottom: 20,
+            }}
+          >
             <AnimatePresence>
               {error && (
                 <MotiView
@@ -317,10 +425,30 @@ export default function ForgotPasswordScreen() {
                   animate={{ opacity: 1, translateY: 0 }}
                   exit={{ opacity: 0, translateY: -10 }}
                   transition={{ type: "timing", duration: 300 }}
-                  className="bg-red-50 p-4 rounded-xl border border-red-100 mb-2"
+                  style={{
+                    backgroundColor: isDarkMode
+                      ? "rgba(127, 29, 29, 0.2)"
+                      : "rgba(254, 226, 226, 0.8)",
+                    padding: 16,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: isDarkMode
+                      ? "rgba(153, 27, 27, 0.3)"
+                      : "rgba(248, 113, 113, 0.3)",
+                    marginBottom: 16,
+                  }}
                   testID="reset-error"
                 >
-                  <Text className="text-red-600 text-center font-medium">
+                  <Text
+                    style={{
+                      color: isDarkMode
+                        ? "rgba(248, 113, 113, 0.9)"
+                        : "rgba(185, 28, 28, 0.9)",
+                      textAlign: "center",
+                      fontWeight: "500",
+                      fontSize: 15,
+                    }}
+                  >
                     {error}
                   </Text>
                 </MotiView>
@@ -342,26 +470,31 @@ export default function ForgotPasswordScreen() {
                   returnKeyType="go"
                   onSubmitEditing={handleResetPassword}
                   testID="email-input"
+                  isDarkMode={isDarkMode}
+                  themeColors={themeColors}
                 />
                 <Animated.View
                   style={{
                     transform: [{ scale: buttonScaleAnim }],
-                    shadowColor: "#1E40AF",
+                    shadowColor: themeColors.primary,
                     shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: 0.35,
                     shadowRadius: 10,
                     elevation: 6,
+                    marginTop: 24,
                   }}
-                  className="mt-4"
                 >
                   <TouchableOpacity
                     onPress={() => {
                       animateButton();
                       handleResetPassword();
                     }}
-                    className={`bg-[#0077B5] rounded-xl py-4 ${
-                      isLoading ? "opacity-70" : ""
-                    }`}
+                    style={{
+                      backgroundColor: themeColors.primary,
+                      borderRadius: 12,
+                      paddingVertical: 16,
+                      opacity: isLoading ? 0.7 : 1,
+                    }}
                     disabled={isLoading}
                     testID="reset-button"
                     activeOpacity={0.85}
@@ -369,7 +502,15 @@ export default function ForgotPasswordScreen() {
                     {isLoading ? (
                       <ActivityIndicator color="white" size="small" />
                     ) : (
-                      <Text className="text-white text-center font-semibold text-lg">
+                      <Text
+                        style={{
+                          color: "white",
+                          textAlign: "center",
+                          fontWeight: "600",
+                          fontSize: 17,
+                          letterSpacing: 0.3,
+                        }}
+                      >
                         Send Reset Link
                       </Text>
                     )}
@@ -381,18 +522,68 @@ export default function ForgotPasswordScreen() {
                 from={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ type: "spring", damping: 15 }}
-                className="bg-green-50 p-7 rounded-xl shadow-sm border border-green-100"
+                style={{
+                  backgroundColor: isDarkMode
+                    ? "rgba(6, 78, 59, 0.2)"
+                    : "rgba(240, 253, 244, 0.8)",
+                  padding: 28,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: isDarkMode
+                    ? "rgba(6, 95, 70, 0.3)"
+                    : "rgba(167, 243, 208, 0.5)",
+                  shadowColor: isDarkMode
+                    ? "rgba(0, 0, 0, 0.5)"
+                    : "rgba(0, 0, 0, 0.1)",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 8,
+                  elevation: isDarkMode ? 4 : 2,
+                }}
                 testID="success-message"
               >
-                <View className="items-center mb-4">
-                  <View className="bg-green-100 rounded-full p-3 mb-2">
-                    <Ionicons name="checkmark" size={32} color="#22C55E" />
+                <View style={{ alignItems: "center", marginBottom: 16 }}>
+                  <View
+                    style={{
+                      backgroundColor: isDarkMode
+                        ? "rgba(6, 95, 70, 0.5)"
+                        : "rgba(209, 250, 229, 0.8)",
+                      borderRadius: 50,
+                      padding: 12,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Ionicons
+                      name="checkmark"
+                      size={32}
+                      color={isDarkMode ? "#4ADE80" : "#059669"}
+                    />
                   </View>
                 </View>
-                <Text className="text-green-800 text-center text-xl font-semibold">
+                <Text
+                  style={{
+                    color: isDarkMode
+                      ? "rgba(167, 243, 208, 0.9)"
+                      : "rgba(6, 95, 70, 0.9)",
+                    textAlign: "center",
+                    fontSize: 22,
+                    fontWeight: "600",
+                    letterSpacing: 0.3,
+                  }}
+                >
                   Reset Link Sent!
                 </Text>
-                <Text className="text-green-600 text-center mt-3 leading-5">
+                <Text
+                  style={{
+                    color: isDarkMode
+                      ? "rgba(110, 231, 183, 0.9)"
+                      : "rgba(16, 185, 129, 0.9)",
+                    textAlign: "center",
+                    marginTop: 12,
+                    lineHeight: 22,
+                    fontSize: 15,
+                  }}
+                >
                   Please check your email inbox for instructions to reset your
                   password. The link will expire in 24 hours.
                 </Text>
@@ -400,20 +591,34 @@ export default function ForgotPasswordScreen() {
             )}
             <Link href="/" asChild>
               <TouchableOpacity
-                className="mt-6"
+                style={{ marginTop: 28 }}
                 disabled={isLoading}
                 testID="back-to-signin"
                 onPress={() =>
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                 }
               >
-                <View className="flex-row items-center justify-center">
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <Ionicons
                     name="arrow-back-outline"
                     size={18}
-                    color="#0077B5"
+                    color={themeColors.primary}
                   />
-                  <Text className="text-center text-[#0077B5] font-medium ml-2 text-base">
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      color: themeColors.primary,
+                      fontWeight: "500",
+                      marginLeft: 8,
+                      fontSize: 16,
+                    }}
+                  >
                     Back to Sign In
                   </Text>
                 </View>

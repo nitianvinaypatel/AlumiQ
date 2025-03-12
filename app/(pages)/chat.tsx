@@ -17,7 +17,8 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import { formatDistanceToNow } from "date-fns";
+// Import useTheme hook and theme types
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface ChatMessage {
   id: string;
@@ -104,6 +105,15 @@ const ChatScreen = () => {
   const params = useLocalSearchParams();
   const { userId, userName, userAvatar } = params;
   const router = useRouter();
+
+  // Get the theme from context
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+
+  // Apply the theme values
+  const themeColors = isDarkMode
+    ? require("@/contexts/ThemeContext").darkTheme
+    : require("@/contexts/ThemeContext").lightTheme;
 
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [newMessage, setNewMessage] = useState("");
@@ -237,7 +247,9 @@ const ChatScreen = () => {
     }
   };
 
-  const renderAttachment = (attachment: ChatMessage["attachments"][0]) => {
+  const renderAttachment = (
+    attachment: NonNullable<ChatMessage["attachments"]>[number]
+  ) => {
     if (attachment.type === "image") {
       return (
         <TouchableOpacity className="mt-2 rounded-lg overflow-hidden">
@@ -246,23 +258,51 @@ const ChatScreen = () => {
             className="w-48 h-36 rounded-lg"
             resizeMode="cover"
           />
-          <View className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded-md">
+          <View
+            className={`absolute bottom-2 left-2 ${
+              isDarkMode ? "bg-black/70" : "bg-black/60"
+            } px-2 py-1 rounded-md`}
+          >
             <Text className="text-white text-xs">{attachment.name}</Text>
           </View>
         </TouchableOpacity>
       );
     } else if (attachment.type === "file") {
       return (
-        <TouchableOpacity className="mt-2 bg-gray-100 rounded-lg p-3 flex-row items-center">
+        <TouchableOpacity
+          className={`mt-2 ${
+            isDarkMode ? "bg-gray-800" : "bg-gray-100"
+          } rounded-lg p-3 flex-row items-center`}
+        >
           <View className="bg-blue-500 w-10 h-10 rounded-lg items-center justify-center mr-3">
             <FontAwesome name="file-pdf-o" size={20} color="white" />
           </View>
           <View className="flex-1">
-            <Text className="font-medium text-gray-800">{attachment.name}</Text>
-            <Text className="text-gray-500 text-xs">{attachment.size}</Text>
+            <Text
+              className={`font-medium ${
+                isDarkMode ? "text-gray-200" : "text-gray-800"
+              }`}
+            >
+              {attachment.name}
+            </Text>
+            <Text
+              className={`${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              } text-xs`}
+            >
+              {attachment.size}
+            </Text>
           </View>
-          <TouchableOpacity className="bg-gray-200 p-2 rounded-full">
-            <Ionicons name="download-outline" size={18} color="#555" />
+          <TouchableOpacity
+            className={`${
+              isDarkMode ? "bg-gray-700" : "bg-gray-200"
+            } p-2 rounded-full`}
+          >
+            <Ionicons
+              name="download-outline"
+              size={18}
+              color={isDarkMode ? "#e5e7eb" : "#555"}
+            />
           </TouchableOpacity>
         </TouchableOpacity>
       );
@@ -274,18 +314,33 @@ const ChatScreen = () => {
     if (!replyData) return null;
 
     return (
-      <View className="bg-gray-100 border-l-2 border-blue-500 rounded-md p-2 mb-2 mx-1 flex-row justify-between items-center">
+      <View
+        className={`${
+          isDarkMode
+            ? "bg-gray-800 border-l-2 border-blue-400"
+            : "bg-gray-100 border-l-2 border-blue-500"
+        } rounded-md p-2 mb-2 mx-1 flex-row justify-between items-center`}
+      >
         <View className="flex-1">
           <Text className="text-blue-500 text-xs font-medium">
             Reply to{" "}
             {replyData.sender === "user" ? "yourself" : userName || "User"}
           </Text>
-          <Text className="text-gray-600 text-xs" numberOfLines={1}>
+          <Text
+            className={`${
+              isDarkMode ? "text-gray-300" : "text-gray-600"
+            } text-xs`}
+            numberOfLines={1}
+          >
             {replyData.text}
           </Text>
         </View>
         <TouchableOpacity onPress={cancelReply}>
-          <Ionicons name="close" size={18} color="#666" />
+          <Ionicons
+            name="close"
+            size={18}
+            color={isDarkMode ? "#9ca3af" : "#666"}
+          />
         </TouchableOpacity>
       </View>
     );
@@ -293,11 +348,29 @@ const ChatScreen = () => {
 
   const renderMessageStatus = (status: string) => {
     if (status === "sent") {
-      return <Ionicons name="checkmark" size={14} color="#9CA3AF" />;
+      return (
+        <Ionicons
+          name="checkmark"
+          size={14}
+          color={isDarkMode ? "#9CA3AF" : "#9CA3AF"}
+        />
+      );
     } else if (status === "delivered") {
-      return <Ionicons name="checkmark-done" size={14} color="#9CA3AF" />;
+      return (
+        <Ionicons
+          name="checkmark-done"
+          size={14}
+          color={isDarkMode ? "#9CA3AF" : "#9CA3AF"}
+        />
+      );
     } else if (status === "read") {
-      return <Ionicons name="checkmark-done" size={14} color="#3B82F6" />;
+      return (
+        <Ionicons
+          name="checkmark-done"
+          size={14}
+          color={isDarkMode ? "#60A5FA" : "#3B82F6"}
+        />
+      );
     }
     return null;
   };
@@ -313,15 +386,28 @@ const ChatScreen = () => {
         <View
           className={`mb-1 rounded-t-lg px-3 py-1.5 ${
             item.sender === "user"
-              ? "bg-blue-600/20 rounded-l-lg"
+              ? isDarkMode
+                ? "bg-blue-600/30 rounded-l-lg"
+                : "bg-blue-600/20 rounded-l-lg"
+              : isDarkMode
+              ? "bg-gray-700 rounded-r-lg"
               : "bg-gray-200 rounded-r-lg"
           }`}
         >
-          <Text className="text-xs font-medium text-gray-600">
+          <Text
+            className={`text-xs font-medium ${
+              isDarkMode ? "text-gray-300" : "text-gray-600"
+            }`}
+          >
             Reply to{" "}
             {item.replyTo.sender === "user" ? "yourself" : userName || "User"}
           </Text>
-          <Text className="text-xs text-gray-500" numberOfLines={1}>
+          <Text
+            className={`text-xs ${
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            }`}
+            numberOfLines={1}
+          >
             {item.replyTo.text}
           </Text>
         </View>
@@ -331,11 +417,19 @@ const ChatScreen = () => {
         className={`${
           item.sender === "user"
             ? "bg-blue-500 rounded-t-lg rounded-l-lg"
+            : isDarkMode
+            ? "bg-gray-700 rounded-t-lg rounded-r-lg shadow-sm"
             : "bg-white rounded-t-lg rounded-r-lg shadow-sm"
         } px-4 py-2.5`}
       >
         <Text
-          className={`text-${item.sender === "user" ? "white" : "gray-800"}`}
+          className={`${
+            item.sender === "user"
+              ? "text-white"
+              : isDarkMode
+              ? "text-gray-200"
+              : "text-gray-800"
+          }`}
         >
           {item.text}
         </Text>
@@ -405,19 +499,23 @@ const ChatScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-gray-50"
+      className={`flex-1 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Custom Header */}
       <Animated.View
-        className="bg-white shadow-sm"
+        className={`${isDarkMode ? "bg-gray-800" : "bg-white"} shadow-sm`}
         style={{ opacity: headerOpacity }}
       >
-        <BlurView intensity={90} tint="light" className="px-4 pt-12 pb-3">
+        <BlurView
+          intensity={90}
+          tint={isDarkMode ? "dark" : "light"}
+          className="px-4 pt-12 pb-3"
+        >
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
               <TouchableOpacity
@@ -427,7 +525,11 @@ const ChatScreen = () => {
                   router.back();
                 }}
               >
-                <Ionicons name="arrow-back" size={24} color="#333" />
+                <Ionicons
+                  name="arrow-back"
+                  size={24}
+                  color={isDarkMode ? "#e5e7eb" : "#333"}
+                />
               </TouchableOpacity>
 
               <Image
@@ -440,7 +542,11 @@ const ChatScreen = () => {
               />
 
               <View>
-                <Text className="font-semibold text-gray-800 text-base">
+                <Text
+                  className={`font-semibold ${
+                    isDarkMode ? "text-gray-200" : "text-gray-800"
+                  } text-base`}
+                >
                   {(userName as string) || "Chat User"}
                 </Text>
                 <Text className="text-xs text-green-500">
@@ -456,7 +562,11 @@ const ChatScreen = () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                 }
               >
-                <Ionicons name="call" size={22} color="#333" />
+                <Ionicons
+                  name="call"
+                  size={22}
+                  color={isDarkMode ? "#e5e7eb" : "#333"}
+                />
               </TouchableOpacity>
               <TouchableOpacity
                 className="p-2"
@@ -464,7 +574,11 @@ const ChatScreen = () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                 }
               >
-                <Ionicons name="videocam" size={22} color="#333" />
+                <Ionicons
+                  name="videocam"
+                  size={22}
+                  color={isDarkMode ? "#e5e7eb" : "#333"}
+                />
               </TouchableOpacity>
               <TouchableOpacity
                 className="p-2 ml-3"
@@ -472,7 +586,11 @@ const ChatScreen = () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                 }
               >
-                <Ionicons name="ellipsis-vertical" size={20} color="#333" />
+                <Ionicons
+                  name="ellipsis-vertical"
+                  size={20}
+                  color={isDarkMode ? "#e5e7eb" : "#333"}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -494,10 +612,23 @@ const ChatScreen = () => {
         ListFooterComponent={
           isTyping ? (
             <View className="flex-row items-center ml-10 mb-4">
-              <View className="bg-gray-200 px-4 py-3 rounded-full">
+              <View
+                className={`${
+                  isDarkMode ? "bg-gray-700" : "bg-gray-200"
+                } px-4 py-3 rounded-full`}
+              >
                 <View className="flex-row items-center space-x-1">
-                  <ActivityIndicator size="small" color="#666" />
-                  <Text className="text-gray-600 text-xs ml-1">Typing...</Text>
+                  <ActivityIndicator
+                    size="small"
+                    color={isDarkMode ? "#9ca3af" : "#666"}
+                  />
+                  <Text
+                    className={`${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    } text-xs ml-1`}
+                  >
+                    Typing...
+                  </Text>
                 </View>
               </View>
             </View>
@@ -511,34 +642,62 @@ const ChatScreen = () => {
           className="absolute top-0 bottom-0 left-0 right-0 bg-black/20"
           onPress={() => setShowOptions(false)}
         >
-          <View className="absolute bottom-24 right-4 bg-white rounded-lg shadow-lg overflow-hidden">
+          <View
+            className={`absolute bottom-24 right-4 ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            } rounded-lg shadow-lg overflow-hidden`}
+          >
             <TouchableOpacity
-              className="flex-row items-center px-4 py-3 border-b border-gray-100"
+              className={`flex-row items-center px-4 py-3 border-b ${
+                isDarkMode ? "border-gray-700" : "border-gray-100"
+              }`}
               onPress={handleReply}
             >
               <Ionicons name="return-up-back" size={20} color="#3B82F6" />
-              <Text className="ml-3 text-gray-800">Reply</Text>
+              <Text
+                className={`ml-3 ${
+                  isDarkMode ? "text-gray-200" : "text-gray-800"
+                }`}
+              >
+                Reply
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="flex-row items-center px-4 py-3 border-b border-gray-100"
+              className={`flex-row items-center px-4 py-3 border-b ${
+                isDarkMode ? "border-gray-700" : "border-gray-100"
+              }`}
               onPress={() => {
                 setShowOptions(false);
                 setSelectedMessage(null);
               }}
             >
               <Ionicons name="copy-outline" size={20} color="#3B82F6" />
-              <Text className="ml-3 text-gray-800">Copy Text</Text>
+              <Text
+                className={`ml-3 ${
+                  isDarkMode ? "text-gray-200" : "text-gray-800"
+                }`}
+              >
+                Copy Text
+              </Text>
             </TouchableOpacity>
             {selectedMessage?.sender === "user" && (
               <TouchableOpacity
-                className="flex-row items-center px-4 py-3 border-b border-gray-100"
+                className={`flex-row items-center px-4 py-3 border-b ${
+                  isDarkMode ? "border-gray-700" : "border-gray-100"
+                }`}
                 onPress={() => {
                   setShowOptions(false);
                   setSelectedMessage(null);
                 }}
               >
                 <Ionicons name="pencil" size={20} color="#3B82F6" />
-                <Text className="ml-3 text-gray-800">Edit Message</Text>
+                <Text
+                  className={`ml-3 ${
+                    isDarkMode ? "text-gray-200" : "text-gray-800"
+                  }`}
+                >
+                  Edit Message
+                </Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -558,44 +717,122 @@ const ChatScreen = () => {
           className="absolute top-0 bottom-0 left-0 right-0 bg-black/20"
           onPress={() => setShowAttachmentOptions(false)}
         >
-          <View className="absolute bottom-24 left-4 right-4 bg-white rounded-lg shadow-lg overflow-hidden">
-            <Text className="px-4 pt-3 pb-2 text-gray-500 text-xs font-medium">
+          <View
+            className={`absolute bottom-24 left-4 right-4 ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            } rounded-lg shadow-lg overflow-hidden`}
+          >
+            <Text
+              className={`px-4 pt-3 pb-2 ${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              } text-xs font-medium`}
+            >
               SHARE
             </Text>
             <View className="flex-row justify-around px-2 pb-4">
               <TouchableOpacity className="items-center p-2">
-                <View className="w-12 h-12 bg-blue-100 rounded-full items-center justify-center mb-1">
-                  <Ionicons name="image" size={22} color="#3B82F6" />
+                <View
+                  className={`w-12 h-12 ${
+                    isDarkMode ? "bg-blue-900/30" : "bg-blue-100"
+                  } rounded-full items-center justify-center mb-1`}
+                >
+                  <Ionicons
+                    name="image"
+                    size={22}
+                    color={isDarkMode ? "#60A5FA" : "#3B82F6"}
+                  />
                 </View>
-                <Text className="text-xs text-gray-600">Photos</Text>
+                <Text
+                  className={`text-xs ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  Photos
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity className="items-center p-2">
-                <View className="w-12 h-12 bg-purple-100 rounded-full items-center justify-center mb-1">
-                  <Ionicons name="document" size={22} color="#8B5CF6" />
+                <View
+                  className={`w-12 h-12 ${
+                    isDarkMode ? "bg-purple-900/30" : "bg-purple-100"
+                  } rounded-full items-center justify-center mb-1`}
+                >
+                  <Ionicons
+                    name="document"
+                    size={22}
+                    color={isDarkMode ? "#A78BFA" : "#8B5CF6"}
+                  />
                 </View>
-                <Text className="text-xs text-gray-600">Files</Text>
+                <Text
+                  className={`text-xs ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  Files
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity className="items-center p-2">
-                <View className="w-12 h-12 bg-green-100 rounded-full items-center justify-center mb-1">
-                  <Ionicons name="location" size={22} color="#10B981" />
+                <View
+                  className={`w-12 h-12 ${
+                    isDarkMode ? "bg-green-900/30" : "bg-green-100"
+                  } rounded-full items-center justify-center mb-1`}
+                >
+                  <Ionicons
+                    name="location"
+                    size={22}
+                    color={isDarkMode ? "#34D399" : "#10B981"}
+                  />
                 </View>
-                <Text className="text-xs text-gray-600">Location</Text>
+                <Text
+                  className={`text-xs ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  Location
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity className="items-center p-2">
-                <View className="w-12 h-12 bg-red-100 rounded-full items-center justify-center mb-1">
-                  <Ionicons name="mic" size={22} color="#EF4444" />
+                <View
+                  className={`w-12 h-12 ${
+                    isDarkMode ? "bg-red-900/30" : "bg-red-100"
+                  } rounded-full items-center justify-center mb-1`}
+                >
+                  <Ionicons
+                    name="mic"
+                    size={22}
+                    color={isDarkMode ? "#F87171" : "#EF4444"}
+                  />
                 </View>
-                <Text className="text-xs text-gray-600">Audio</Text>
+                <Text
+                  className={`text-xs ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  Audio
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity className="items-center p-2">
-                <View className="w-12 h-12 bg-yellow-100 rounded-full items-center justify-center mb-1">
-                  <Ionicons name="person" size={22} color="#F59E0B" />
+                <View
+                  className={`w-12 h-12 ${
+                    isDarkMode ? "bg-yellow-900/30" : "bg-yellow-100"
+                  } rounded-full items-center justify-center mb-1`}
+                >
+                  <Ionicons
+                    name="person"
+                    size={22}
+                    color={isDarkMode ? "#FBBF24" : "#F59E0B"}
+                  />
                 </View>
-                <Text className="text-xs text-gray-600">Contact</Text>
+                <Text
+                  className={`text-xs ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  Contact
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -603,7 +840,13 @@ const ChatScreen = () => {
       )}
 
       {/* Input Area */}
-      <View className="border-t border-gray-200 bg-white">
+      <View
+        className={`border-t ${
+          isDarkMode
+            ? "border-gray-700 bg-gray-800"
+            : "border-gray-200 bg-white"
+        }`}
+      >
         {replyingTo && renderReplyPreview(replyingTo)}
 
         <View className="flex-row items-center p-2">
@@ -614,26 +857,45 @@ const ChatScreen = () => {
               setShowAttachmentOptions(true);
             }}
           >
-            <Ionicons name="add-circle-outline" size={24} color="#666" />
+            <Ionicons
+              name="add-circle-outline"
+              size={24}
+              color={isDarkMode ? "#9ca3af" : "#666"}
+            />
           </TouchableOpacity>
 
-          <View className="flex-1 flex-row items-center bg-gray-100 rounded-full px-3 py-1 mx-1">
+          <View
+            className={`flex-1 flex-row items-center ${
+              isDarkMode ? "bg-gray-700" : "bg-gray-100"
+            } rounded-full px-3 py-1 mx-1`}
+          >
             <TextInput
               ref={inputRef}
-              className="flex-1 py-1.5 px-1 text-gray-800"
+              className={`flex-1 py-1.5 px-1 ${
+                isDarkMode ? "text-gray-200" : "text-gray-800"
+              }`}
               placeholder="Type a message..."
+              placeholderTextColor={isDarkMode ? "#9ca3af" : "#9ca3af"}
               value={newMessage}
               onChangeText={setNewMessage}
               multiline
-              maxHeight={100}
+              style={{ maxHeight: 100 }}
             />
 
             <TouchableOpacity className="p-1 mr-1">
-              <Ionicons name="happy-outline" size={22} color="#666" />
+              <Ionicons
+                name="happy-outline"
+                size={22}
+                color={isDarkMode ? "#9ca3af" : "#666"}
+              />
             </TouchableOpacity>
 
             <TouchableOpacity className="p-1">
-              <MaterialIcons name="gif" size={22} color="#666" />
+              <MaterialIcons
+                name="gif"
+                size={22}
+                color={isDarkMode ? "#9ca3af" : "#666"}
+              />
             </TouchableOpacity>
           </View>
 
@@ -651,7 +913,11 @@ const ChatScreen = () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
               }
             >
-              <Ionicons name="mic" size={24} color="#666" />
+              <Ionicons
+                name="mic"
+                size={24}
+                color={isDarkMode ? "#9ca3af" : "#666"}
+              />
             </TouchableOpacity>
           )}
         </View>
